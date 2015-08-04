@@ -74,6 +74,9 @@ private slots:
     void normalSize();
     void fitToWindow();
     void about();
+    void redToggle();
+    void greenToggle();
+    void blueToggle();
 
 private:
     void createActions();
@@ -82,10 +85,15 @@ private:
     void updateActions();
     void scaleImage(double factor);
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
-
+    void loadImage(QImage &);
     QLabel *imageLabel;
     QScrollArea *scrollArea;
+//    QVector <QVector <int> > *image_structure;
     double scaleFactor;
+    QImage tempImage;
+    bool greenOn;
+    bool blueOn;
+    bool redOn;
 
 #ifndef QT_NO_PRINTER
     QPrinter printer;
@@ -103,9 +111,15 @@ private:
     QAction *aboutQtAct;
     QAction *saveasAct;
 
+    QAction *greenToggleAct;
+    QAction *redToggleAct;
+    QAction *blueToggleAct;
+
     QMenu *fileMenu;
     QMenu *viewMenu;
     QMenu *helpMenu;
+    QMenu *effectsMenu;
+    QMenu *colourMenu;
 };
 //! [0]
 

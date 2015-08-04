@@ -61,11 +61,13 @@ class ImageViewer : public QMainWindow
 
 public:
     ImageViewer();
+
     bool loadFile(const QString &);
 
 private slots:
     void open();
     void saveas();
+    void cloneWindow();
     void print();
     void zoomIn();
     void zoomOut();
@@ -91,6 +93,7 @@ private:
 
     QAction *openAct;
     QAction *printAct;
+    QAction *cloneWindowAct;
     QAction *exitAct;
     QAction *zoomInAct;
     QAction *zoomOutAct;

@@ -64,6 +64,7 @@ ImageViewer::ImageViewer()
     resize(QGuiApplication::primaryScreen()->availableSize() * 3 / 5);
 }
 
+
 //! [0]
 //! [2]
 
@@ -244,6 +245,10 @@ void ImageViewer::createActions()
     saveasAct->setShortcut(tr("Ctrl+S"));
     connect(saveasAct, SIGNAL(triggered()), this, SLOT(saveas()));
 
+    cloneWindowAct = new QAction(tr("&Clone..."), this);
+    cloneWindowAct->setShortcut(tr("Ctrl+C"));
+    connect(cloneWindowAct, SIGNAL(triggered()), this, SLOT(cloneWindow()));
+
     printAct = new QAction(tr("&Print..."), this);
     printAct->setShortcut(tr("Ctrl+P"));
     printAct->setEnabled(false);
@@ -289,6 +294,7 @@ void ImageViewer::createMenus()
     fileMenu = new QMenu(tr("&File"), this);
     fileMenu->addAction(openAct);
     fileMenu->addAction(saveasAct);
+    fileMenu->addAction(cloneWindowAct);
     fileMenu->addAction(printAct);
     fileMenu->addSeparator();
     fileMenu->addAction(exitAct);
@@ -345,4 +351,10 @@ void ImageViewer::adjustScrollBar(QScrollBar *scrollBar, double factor)
 }
 //! [26]
 
-
+void ImageViewer::cloneWindow(){
+    ImageViewer *img = new ImageViewer();
+    img->imageLabel->setPixmap(imageLabel->pixmap()->copy());
+    img->imageLabel->adjustSize();
+//    ;
+    img->show();
+}

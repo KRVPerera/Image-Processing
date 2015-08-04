@@ -121,6 +121,7 @@ bool ImageViewer::saveFile(const QString &fileName)
 
     if(!(imageLabel->pixmap()->isNull())){
         imageLabel->pixmap()->save(fileName);
+        setWindowFilePath(fileName);
     }else{
         QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
                                  tr("Cannot load %1.").arg(QDir::toNativeSeparators(fileName)));
@@ -131,10 +132,8 @@ bool ImageViewer::saveFile(const QString &fileName)
     }
 
 
-//    if (!fitToWindowAct->isChecked())
-//        imageLabel->adjustSize();
 
-//    setWindowFilePath(fileName);
+
     return true;
 }
 
@@ -148,6 +147,7 @@ void ImageViewer::saveas(){
         QFileDialog dialog(this, tr("Save File"),
                            picturesLocations.isEmpty() ? QDir::currentPath() : picturesLocations.first());
         dialog.setAcceptMode(QFileDialog::AcceptSave);
+        dialog.setDefaultSuffix("jpg");
         dialog.setMimeTypeFilters(mimeTypeFilters);
         dialog.selectMimeTypeFilter("image/jpeg");
 

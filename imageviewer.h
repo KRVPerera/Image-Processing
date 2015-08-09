@@ -46,6 +46,9 @@
 #include <QPrinter>
 #endif
 
+#include "imageprocessor.h"
+
+
 QT_BEGIN_NAMESPACE
 class QAction;
 class QLabel;
@@ -77,6 +80,7 @@ private slots:
     void redToggle();
     void greenToggle();
     void blueToggle();
+    void imageResample();
 
 private:
     void createActions();
@@ -86,8 +90,10 @@ private:
     void scaleImage(double factor);
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
     void loadImage(QImage &);
+
     QLabel *imageLabel;
     QScrollArea *scrollArea;
+    ImageProcessor myImg;
 //    QVector <QVector <int> > *image_structure;
     double scaleFactor;
     QImage tempImage;
@@ -110,6 +116,7 @@ private:
     QAction *aboutAct;
     QAction *aboutQtAct;
     QAction *saveasAct;
+    QAction *resampleAct;
 
     QAction *greenToggleAct;
     QAction *redToggleAct;

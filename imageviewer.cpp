@@ -45,6 +45,8 @@
 
 #include "imageviewer.h"
 #include <QDebug>
+#include "imageprocessor.h"
+
 //! [0]
 ImageViewer::ImageViewer()
 {
@@ -82,7 +84,13 @@ bool ImageViewer::loadFile(const QString &fileName)
         return false;
     }
     image.convertToFormat(QImage::Format_RGB32);
+    // Cool man testing pased
+
+//    ImageProcessor imp;
+//    imp.setImage(image);
+    myImg.setImage(image);
     loadImage(image);
+//    loadImage(imp.getImage());
 
 //! [2] //! [3]
 //    imageLabel->setPixmap(QPixmap::fromImage(image));
@@ -298,6 +306,9 @@ void ImageViewer::createActions()
 
     blueToggleAct = new QAction(tr("&Blue Toggle"), this);
     connect(blueToggleAct, SIGNAL(triggered()), this, SLOT(blueToggle()));
+
+    resampleAct = new QAction(tr("&Resample"), this);
+    connect(resampleAct, SIGNAL(triggered()), this, SLOT(imageResample()));
 }
 //! [18]
 
@@ -331,6 +342,7 @@ void ImageViewer::createMenus()
 
     effectsMenu = new QMenu(tr("&Effects"), this);
     effectsMenu->addMenu(colourMenu);
+    effectsMenu->addAction(resampleAct);
 
     menuBar()->addMenu(fileMenu);
     menuBar()->addMenu(viewMenu);
@@ -466,4 +478,11 @@ void ImageViewer::blueToggle(){
     }else{
         imageLabel->setPixmap(QPixmap::fromImage(tempImage));
     }
+}
+
+void ImageViewer::imageResample(){
+//    QImage *img = new QImage(&myImg.nearestNeighbourResample());
+    QImage *img = &myImg.nearestNeighbourResample();
+    imageLabel->setPixmap(QPixmap::fromImage(*img));
+    imageLabel->adjustSize();
 }

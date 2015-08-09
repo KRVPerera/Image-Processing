@@ -40,13 +40,16 @@
 
 #include <QApplication>
 #include <QCommandLineParser>
+#include <QDebug>
 
 #include "imageviewer.h"
+#include "pixel.h"
+#include "imageprocessor.h"
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    QGuiApplication::setApplicationDisplayName(ImageViewer::tr("Image Viewer"));
+    QGuiApplication::setApplicationDisplayName(ImageViewer::tr("KRV's Image Viewer"));
 //    QCommandLineParser commandLineParser;
 //    commandLineParser.addHelpOption();
 //    commandLineParser.addPositionalArgument(ImageViewer::tr("[file]"), ImageViewer::tr("Image file to open."));
@@ -57,5 +60,13 @@ int main(int argc, char *argv[])
 //        return -1;
 //    }
     imageViewer.show();
+
+//    Pixel pix(10,20,30);
+//    qDebug() << pix.getBlue() ;
+//    ImageProcessor imp;
+//    imp.setHeight(10);
+//    imp.setWidth(10);
+//    qDebug() << imp.getN4neighbours(9,5);
+
     return app.exec();
 }

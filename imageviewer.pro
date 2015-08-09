@@ -9,5 +9,9 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 QT += printsupport
 
 # Input
-HEADERS += imageviewer.h
-SOURCES += imageviewer.cpp main.cpp
+HEADERS += imageviewer.h \
+    imageprocessor.h \
+    pixel.h
+SOURCES += imageviewer.cpp main.cpp \
+    imageprocessor.cpp \
+    pixel.cpp

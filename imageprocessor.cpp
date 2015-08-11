@@ -8,73 +8,87 @@ ImageProcessor::ImageProcessor()
 void ImageProcessor::setImage(QImage img){
     width = img.width();
     height = img.height();
-
-    for(int row = 0 ; row < height ; ++row){
-        for (int col = 0; col < width; ++col) {
-            QRgb clr = img.pixel(col, row);
+    image.clear();
+    for(int row = 0 ; row < width ; ++row){
+        for (int col = 0; col < height; ++col) {
+            QRgb clr = img.pixel(row, col);
             QColor colr = QColor(clr);
-//            clr = qRgba(colr.red(),colr.green(),0, 255);
-            Pixel *pix = new Pixel(0,0,0);
-            pix->setColour(colr.red(),colr.green(),colr.blue());
-            image.append(*pix);
+            Pixel pix(0,0,0,0);
+            pix.setColour(colr.red(),colr.green(),colr.blue(), colr.alpha());
+            image.append(pix);
         }
     }
 }
 
-QImage& ImageProcessor::getImage(){
-    QImage *out_image = new QImage(width, height, QImage::Format_RGB32);
-    for(int row = 0 ; row < height ; ++row){
-        for (int col = 0; col < width; ++col) {
+QImage ImageProcessor::getImage(){
+    QImage out_image(width, height, QImage::Format_RGB32);
+    for(int row = 0 ; row < width ; ++row){
+        for (int col = 0; col < height; ++col) {
             QRgb clr ;
-            Pixel pixi = image.at(row+col);
-            clr = qRgba(pixi.getRed(),pixi.getGreen(),pixi.getBlue(), 255);
-            out_image->setPixel(col,row,clr);
+            Pixel pixi(image.at(row+col));
+            clr = qRgba(pixi.getRed(), pixi.getGreen(), pixi.getBlue(), pixi.getAlpha());
+            out_image.setPixel(row,col,clr);
         }
     }
-    return *out_image;
+
+
+    return out_image;
 }
 
-QImage& ImageProcessor::toImage(QVector<Pixel> &img, int w, int h){
-    QImage *out_image = new QImage(w, h, QImage::Format_RGB32);
+QImage ImageProcessor::toImage(QVector<Pixel> img, int w, int h){
+    QImage out_image(w, h, QImage::Format_RGB32);
+
     for(int row = 0 ; row < w ; ++row){
         for (int col = 0; col < h; ++col) {
             QRgb clr ;
             Pixel pixi = img.at(row+col);
-            clr = qRgba(pixi.getRed(),pixi.getGreen(),pixi.getBlue(), 255);
-            out_image->setPixel(row,col,clr);
+            clr = qRgba(pixi.getRed(), pixi.getGreen(), pixi.getBlue(), pixi.getAlpha());
+            out_image.setPixel(row,col,clr);
         }
     }
-    return *out_image;
+    return out_image;
+}
+
+QVector<Pixel> ImageProcessor::toImageVec(){
+    return image;
 }
 
 
 
+QImage ImageProcessor::nearestNeighbourResample(){
 
-QImage& ImageProcessor::nearestNeighbourResample(){
-    QImage *out_image;
     QVector<Pixel> image_temp;
-//    image_temp << image;
+
 
     for(int row = 0 ; row < height ; ++row){
         for (int col = 0; col < width; ++col) {
-            if( row % 2 == 0 || col % 2 == 0){
+            if( row % 5 == 0 || col % 5 == 0){
                 continue;
             }
             image_temp.append(image.at(row+col));
         }
     }
-//    out_image = new QImage(toImage(image_temp, width/2, height/2));
-    out_image = new QImage(toImage(image, width, height));
-//    out_image = new QImage(image);
-    return *out_image;
+
+    QImage out_image(ImageProcessor::toImage(image_temp, width, height));
+//    out_image = new QImage(ImageProcessor::toImage(image_temp, width, height));
+
+    return out_image;
 }
 
 void ImageProcessor::setHeight(int h){
     height = h;
 }
 
+int ImageProcessor::getHeight(){
+    return height;
+}
+
 void ImageProcessor::setWidth(int w){
     width = w;
+}
+
+int ImageProcessor::getWidth(){
+    return width;
 }
 
 QVector<QPoint> ImageProcessor::getN4neighbours(int row, int col){
@@ -109,3 +123,17 @@ QVector<QPoint> ImageProcessor::getN4neighbours(int row, int col){
     return neighbours;
 }
 
+QImage ImageProcessor::negative(){
+    QImage out_image(width, height, QImage::Format_RGB32);
+
+    for(int row = 0 ; row < width ; ++row){
+        for (int col = 0; col < height; ++col) {
+            QRgb clr ;
+            Pixel pixi = image.at(row+col);
+            clr = qRgba(255-pixi.getRed(),255-pixi.getGreen(),255-pixi.getBlue(),255);
+            out_image.setPixel(row,col,clr);
+        }
+    }
+    setImage(out_image);
+    return out_image;
+}

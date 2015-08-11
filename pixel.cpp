@@ -5,35 +5,42 @@ Pixel::Pixel()
 
 }
 
-Pixel::Pixel(int r, int g, int b){
+Pixel::Pixel(uchar r, uchar g, uchar b, uchar a){
     rgb[0] = r;
     rgb[1] = g;
     rgb[2] = b;
+    rgb[3] = a;
 }
 
 QColor Pixel::getQColor(){
-    QColor new_colour(rgb[0],rgb[1],rgb[2]);
+    QColor new_colour(rgb[0],rgb[1],rgb[2], rgb[3]);
     return new_colour;
 }
 
-int* Pixel::getColours(){
+uchar* Pixel::getColours(){
     return rgb;
 }
 
-int Pixel::getRed(){
+uchar Pixel::getRed(){
     return rgb[0];
 }
 
-int Pixel::getGreen(){
+uchar Pixel::getGreen(){
     return rgb[1];
 }
 
-int Pixel::getBlue(){
+uchar Pixel::getBlue(){
     return rgb[2];
 }
 
-void Pixel::setColour(int r, int g, int b){
+uchar Pixel::getAlpha(){
+    return rgb[3];
+}
+
+void Pixel::setColour(uchar r, uchar g, uchar b, uchar a){
     rgb[0] = r;
     rgb[1] = g;
     rgb[2] = b;
+    rgb[3] = a;
 }
+

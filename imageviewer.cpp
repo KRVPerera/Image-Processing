@@ -60,6 +60,7 @@ ImageViewer::ImageViewer()
     scrollArea->setWidget(imageLabel);
     setCentralWidget(scrollArea);
 
+
     createActions();
     createMenus();
 
@@ -73,7 +74,7 @@ ImageViewer::ImageViewer()
 bool ImageViewer::loadFile(const QString &fileName)
 {
     QImage image(fileName);
-    tempImage = image.copy();
+
     if (image.isNull()) {
         QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
                                  tr("Cannot load %1.").arg(QDir::toNativeSeparators(fileName)));
@@ -83,17 +84,11 @@ bool ImageViewer::loadFile(const QString &fileName)
         imageLabel->adjustSize();
         return false;
     }
-    image.convertToFormat(QImage::Format_RGB32);
-    // Cool man testing pased
-
-//    ImageProcessor imp;
-//    imp.setImage(image);
-    myImg.setImage(image);
-    loadImage(image);
-//    loadImage(imp.getImage());
+//    image.convertToFormat(QImage::Format_RGB32);
+    tempImage = image.copy();
+    loadImage(tempImage);
 
 //! [2] //! [3]
-//    imageLabel->setPixmap(QPixmap::fromImage(image));
 //! [3] //! [4]
     scaleFactor = 1.0;
 
@@ -242,7 +237,8 @@ void ImageViewer::about()
                "automatically resize its contents "
                "(QScrollArea::widgetResizable), can be used to implement "
                "zooming and scaling features. </p><p>In addition the example "
-               "shows how to use QPainter to print an image.</p>"));
+               "shows how to use QPainter to print an image.</p> <p> Newly added features by KRV "
+               "Colour filters, Histograms, Resampling, Negative"));
 }
 //! [16]
 
@@ -307,8 +303,9 @@ void ImageViewer::createActions()
     blueToggleAct = new QAction(tr("&Blue Toggle"), this);
     connect(blueToggleAct, SIGNAL(triggered()), this, SLOT(blueToggle()));
 
-    resampleAct = new QAction(tr("&Resample"), this);
-    connect(resampleAct, SIGNAL(triggered()), this, SLOT(imageResample()));
+    resampleAct = new QAction(tr("&Negative"), this);
+    resampleAct->setShortcut(tr("Ctrl+R"));
+    connect(resampleAct, SIGNAL(triggered()), this, SLOT(negative()));
 }
 //! [18]
 
@@ -404,49 +401,46 @@ void ImageViewer::cloneWindow(){
 /*
  * Load the image to a data structure
  * */
-void ImageViewer::loadImage(QImage &image){
-    int num_of_cols = image.height();
-    int num_of_rows = image.width();
-//    QImage image2(3,3, QImage::Format_RGB32);
+void ImageViewer::loadImage(QImage image){
 
-    for(int row=0; row<num_of_rows; ++row){
-        for(int col=0; col<num_of_cols; ++col){
-            QRgb clr = image.pixel(row, col);
-            QColor colr = QColor(clr);
-            clr = qRgba(colr.red(),colr.green(),colr.blue(), 255);
-            image.setPixel(row,col,clr);
-        }
-    }
-    imageLabel->setPixmap(QPixmap::fromImage(tempImage));
+    imageLabel->setPixmap(QPixmap::fromImage(image));
 }
 
 void ImageViewer::redToggle(){
-    int num_of_cols = tempImage.height();
-    int num_of_rows = tempImage.width();
-//    QImage image2(3,3, QImage::Format_RGB32);
-
-    for(int row=0; row<num_of_rows; ++row){
-        for(int col=0; col<num_of_cols; ++col){
-            QRgb clr = tempImage.pixel(row, col);
-            QColor colr = QColor(clr);
-            clr = qRgba(colr.red(),colr.green(),colr.blue(), 255);
-            tempImage.setPixel(row,col,clr);
-        }
-    }
-    imageLabel->setPixmap(QPixmap::fromImage(tempImage));
-}
-
-void ImageViewer::greenToggle(){
-    if(greenOn){
+    if(redOn && greenOn && blueOn){
     int num_of_cols = tempImage.height();
     int num_of_rows = tempImage.width();
 //    QImage image2(3,3, QImage::Format_RGB32);
     QImage img = tempImage.copy();
     for(int row=0; row<num_of_rows; ++row){
         for(int col=0; col<num_of_cols; ++col){
+            QRgb clr = tempImage.pixel(row, col);
+            QColor colr = QColor(clr);
+            clr = qRgba(colr.red(), 0, 0, 255);
+            img.setPixel(row,col,clr);
+        }
+    }
+    imageLabel->setPixmap(QPixmap::fromImage(img));
+    redOn = false;
+    }else{
+        imageLabel->setPixmap(QPixmap::fromImage(tempImage));
+//        redToggle();
+        redOn = true;
+        blueOn = true;
+        greenOn = true;
+    }
+}
+
+void ImageViewer::greenToggle(){
+    if(redOn && greenOn && blueOn){
+    int num_of_cols = tempImage.height();
+    int num_of_rows = tempImage.width();
+    QImage img = tempImage.copy();
+    for(int row=0; row<num_of_rows; ++row){
+        for(int col=0; col<num_of_cols; ++col){
             QRgb clr = img.pixel(row, col);
             QColor colr = QColor(clr);
-            clr = qRgba(colr.red(),0,colr.blue(), 255);
+            clr = qRgba(0,colr.green(),0, 255);
             img.setPixel(row,col,clr);
         }
     }
@@ -454,12 +448,15 @@ void ImageViewer::greenToggle(){
     greenOn = false;
     }else{
         imageLabel->setPixmap(QPixmap::fromImage(tempImage));
+//        greenToggle();
+        redOn = true;
+        blueOn = true;
         greenOn = true;
     }
 }
 
 void ImageViewer::blueToggle(){
-    if(blueOn){
+    if(redOn && greenOn && blueOn){
     int num_of_cols = tempImage.height();
     int num_of_rows = tempImage.width();
 //    QImage image2(3,3, QImage::Format_RGB32);
@@ -468,21 +465,52 @@ void ImageViewer::blueToggle(){
 
     for(int row=0; row<num_of_rows; ++row){
         for(int col=0; col<num_of_cols; ++col){
+//            if(col > 5 and col < 10) continue;
             QRgb clr = img.pixel(row, col);
             QColor colr = QColor(clr);
-            clr = qRgba(colr.red(),colr.green(),0, 255);
+            clr = qRgba(0,0,colr.blue(), 255);
             img.setPixel(row,col,clr);
         }
     }
         imageLabel->setPixmap(QPixmap::fromImage(img));
+        blueOn = false;
     }else{
         imageLabel->setPixmap(QPixmap::fromImage(tempImage));
+        redOn = true;
+        blueOn = true;
+        greenOn = true;
     }
 }
 
 void ImageViewer::imageResample(){
-//    QImage *img = new QImage(&myImg.nearestNeighbourResample());
-    QImage *img = &myImg.nearestNeighbourResample();
-    imageLabel->setPixmap(QPixmap::fromImage(*img));
-    imageLabel->adjustSize();
+
+//    QImage img(myImg.nearestNeighbourResample().copy());
+//    tempImage = img.copy();
+//    tempImage = myImg.nearestNeighbourResample();
+//    tempImage = myImg.negative();
+//    loadImage(myImg.getImage());
+//    imageLabel->setPixmap(QPixmap::fromImage(tempImage));
+    negative();
+
 }
+
+void ImageViewer::negative(){
+    int num_of_cols = tempImage.height();
+    int num_of_rows = tempImage.width();
+    QImage img = tempImage.copy();
+
+    for(int row = 0 ; row < num_of_rows ; ++row){
+        for (int col = 0; col < num_of_cols; ++col) {
+            QRgb clr = tempImage.pixel(row,col);
+            QColor pixi = QColor(clr);
+            clr = qRgba(255-pixi.red(),255-pixi.green(),255-pixi.blue(),255);
+            img.setPixel(row,col,clr);
+        }
+    }
+
+     imageLabel->setPixmap(QPixmap::fromImage(img));
+     tempImage = img.copy();
+     imageLabel->adjustSize();
+}
+
+

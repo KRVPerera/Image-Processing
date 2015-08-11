@@ -47,6 +47,7 @@
 #include <QDebug>
 #include "imageprocessor.h"
 
+
 //! [0]
 ImageViewer::ImageViewer()
 {
@@ -303,9 +304,12 @@ void ImageViewer::createActions()
     blueToggleAct = new QAction(tr("&Blue Toggle"), this);
     connect(blueToggleAct, SIGNAL(triggered()), this, SLOT(blueToggle()));
 
-    resampleAct = new QAction(tr("&Negative"), this);
-    resampleAct->setShortcut(tr("Ctrl+R"));
-    connect(resampleAct, SIGNAL(triggered()), this, SLOT(negative()));
+    negativeAct = new QAction(tr("&Negative"), this);
+    negativeAct->setShortcut(tr("Ctrl+R"));
+    connect(negativeAct, SIGNAL(triggered()), this, SLOT(negative()));
+
+    resampleAct = new QAction(tr("&Resample"), this);
+    connect(resampleAct, SIGNAL(triggered()), this, SLOT(imageResample()));
 }
 //! [18]
 
@@ -340,6 +344,7 @@ void ImageViewer::createMenus()
     effectsMenu = new QMenu(tr("&Effects"), this);
     effectsMenu->addMenu(colourMenu);
     effectsMenu->addAction(resampleAct);
+    effectsMenu->addAction(negativeAct);
 
     menuBar()->addMenu(fileMenu);
     menuBar()->addMenu(viewMenu);
@@ -483,15 +488,25 @@ void ImageViewer::blueToggle(){
 }
 
 void ImageViewer::imageResample(){
+    int num_of_cols = tempImage.height();
+    int num_of_rows = tempImage.width();
+    QImage img2(num_of_rows/2, num_of_cols/2, QImage::Format_RGB32);
 
-//    QImage img(myImg.nearestNeighbourResample().copy());
-//    tempImage = img.copy();
-//    tempImage = myImg.nearestNeighbourResample();
-//    tempImage = myImg.negative();
-//    loadImage(myImg.getImage());
-//    imageLabel->setPixmap(QPixmap::fromImage(tempImage));
-    negative();
+    for(int row = 0 ; row < num_of_rows ; row = row + 2){
+        for (int col = 0; col < num_of_cols; col = col + 2) {
+            if(row%2 == 0 && col%2 == 0){
+                QRgb clr = tempImage.pixel(row,col);
+                QColor pixi = QColor(clr);
+                clr = qRgba(pixi.red(),pixi.green(),pixi.blue(),pixi.alpha());
+                img2.setPixel(row/2,col/2,clr);
+            }
 
+        }
+    }
+
+     imageLabel->setPixmap(QPixmap::fromImage(img2));
+     imageLabel->adjustSize();
+     tempImage = img2.copy();
 }
 
 void ImageViewer::negative(){
@@ -509,8 +524,8 @@ void ImageViewer::negative(){
     }
 
      imageLabel->setPixmap(QPixmap::fromImage(img));
-     tempImage = img.copy();
      imageLabel->adjustSize();
+     tempImage = img.copy();
 }
 
 

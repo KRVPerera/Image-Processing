@@ -6,7 +6,7 @@ An extention to QT image viewer sample<br>
  -> RGB colour filters<br>
  -> Negative of a image<br>
 <br>
-<b>Future </b>
+<b>Future </b><br>
  -> RGB Histograms<br>
  -> Resampling<br>
  -> Scaling<br>

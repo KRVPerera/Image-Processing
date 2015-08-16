@@ -296,19 +296,24 @@ void ImageViewer::createActions()
     connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
     redToggleAct = new QAction(tr("&Red Toggle"), this);
+    redToggleAct->setEnabled(false);
     connect(redToggleAct, SIGNAL(triggered()), this, SLOT(redToggle()));
 
     greenToggleAct = new QAction(tr("&Green Toggle"), this);
+    greenToggleAct->setEnabled(false);
     connect(greenToggleAct, SIGNAL(triggered()), this, SLOT(greenToggle()));
 
     blueToggleAct = new QAction(tr("&Blue Toggle"), this);
+    blueToggleAct->setEnabled(false);
     connect(blueToggleAct, SIGNAL(triggered()), this, SLOT(blueToggle()));
 
     negativeAct = new QAction(tr("&Negative"), this);
     negativeAct->setShortcut(tr("Ctrl+R"));
+    negativeAct->setEnabled(false);
     connect(negativeAct, SIGNAL(triggered()), this, SLOT(negative()));
 
     brightnessContrastAct = new QAction(tr("&Brightness"), this);
+    brightnessContrastAct->setEnabled(false);
     connect(brightnessContrastAct, SIGNAL(triggered()), this, SLOT(brightnessContrast()));
 
     resampleAct = new QAction(tr("&Resample"), this);
@@ -542,7 +547,3 @@ void ImageViewer::brightnessContrast(){
     tempImage = tempImage.copy();
 
 }
-
-
-
-

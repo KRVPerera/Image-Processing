@@ -561,9 +561,7 @@ void ImageViewer::brightnessContrast(){
 
     QPushButton *btn = new QPushButton("&Ok");
     QLabel *lblBrightValue = new QLabel(QString::number(brightness));
-//    lblBrightValue->setProperty("Color", Qt::red);
-//    lblBrightValue->setTextFormat(Qt::RichText);
-//    btn->setSizePolicy(QSizePolicy::MinimumExpanding);
+
 
     QSlider *pb = new QSlider();
     pb->setMaximum(255);
@@ -583,7 +581,6 @@ void ImageViewer::brightnessContrast(){
 
     QObject::connect(pb, SIGNAL(sliderMoved(int)), this, SLOT(brightnessContrastSlot(int)));
     QObject::connect(pb, SIGNAL(sliderMoved(int)), lblBrightValue, SLOT(setNum(int)));
-//    QObject::connect(pb, SIGNAL(sliderMoved(int)), lblBrightValue, SLOT(setText(int)));
     QObject::connect(btn, SIGNAL(clicked()), brightnWdgt, SLOT(close()));
 
 
@@ -597,7 +594,7 @@ void ImageViewer::brightnessContrastSlot(int x){
     brightness = x;
 
     float y = x/255.0;
-    qDebug() << x << y ;//endl;
+//    qDebug() << x << y ;//endl;
     for(int row = 0 ; row < num_of_rows ; ++row){
         for (int col = 0; col < num_of_cols; ++col) {
             QRgb clr = tempImage.pixel(row,col);

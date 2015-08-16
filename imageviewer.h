@@ -82,6 +82,7 @@ private slots:
     void imageResample();
     void negative();
     void brightnessContrast();
+    void brightnessContrastSlot(int x);
 
 private:
     void createActions();
@@ -97,11 +98,14 @@ private:
     QScrollArea *scrollArea;
 //    ImageProcessor myImg;
 
+
     double scaleFactor;
     QImage tempImage;
     bool greenOn;
     bool blueOn;
     bool redOn;
+    int brightness;
+
 
 #ifndef QT_NO_PRINTER
     QPrinter printer;

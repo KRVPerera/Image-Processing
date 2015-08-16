@@ -44,7 +44,7 @@
 
 #include "imageviewer.h"
 #include "pixel.h"
-#include "imageprocessor.h"
+//#include "imageprocessor.h"
 
 int main(int argc, char *argv[])
 {
@@ -60,6 +60,8 @@ int main(int argc, char *argv[])
 //        && !imageViewer.loadFile(commandLineParser.positionalArguments().front())) {
 //        return -1;
 //    }
+
+    imageViewer.loadFile("/home/drex/Pictures/1.jpg");
     imageViewer.show();
 
 //    Pixel pix(10,20,30);

@@ -43,9 +43,15 @@
 #include <QPrintDialog>
 #endif
 
-#include "imageviewer.h"
+#include <QPushButton>
+#include <QSlider>
+
+
 #include <QDebug>
-#include "imageprocessor.h"
+
+#include "imageviewer.h"
+
+//#include "imageprocessor.h"
 
 
 //! [0]
@@ -85,7 +91,7 @@ bool ImageViewer::loadFile(const QString &fileName)
         imageLabel->adjustSize();
         return false;
     }
-//    image.convertToFormat(QImage::Format_RGB32);
+    image.convertToFormat(QImage::Format_RGB32);
     tempImage = image.copy();
     loadImage(tempImage);
 
@@ -104,6 +110,7 @@ bool ImageViewer::loadFile(const QString &fileName)
     greenOn = true;
     blueOn = true;
     redOn = true;
+    brightness = 255;
     return true;
 }
 
@@ -296,27 +303,29 @@ void ImageViewer::createActions()
     connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
     redToggleAct = new QAction(tr("&Red Toggle"), this);
-    redToggleAct->setEnabled(false);
+    // redToggleAct->setEnabled(false);
     connect(redToggleAct, SIGNAL(triggered()), this, SLOT(redToggle()));
 
     greenToggleAct = new QAction(tr("&Green Toggle"), this);
-    greenToggleAct->setEnabled(false);
+    // greenToggleAct->setEnabled(false);
     connect(greenToggleAct, SIGNAL(triggered()), this, SLOT(greenToggle()));
 
     blueToggleAct = new QAction(tr("&Blue Toggle"), this);
-    blueToggleAct->setEnabled(false);
+    // blueToggleAct->setEnabled(false);
     connect(blueToggleAct, SIGNAL(triggered()), this, SLOT(blueToggle()));
 
     negativeAct = new QAction(tr("&Negative"), this);
     negativeAct->setShortcut(tr("Ctrl+R"));
-    negativeAct->setEnabled(false);
+    // negativeAct->setEnabled(false);
     connect(negativeAct, SIGNAL(triggered()), this, SLOT(negative()));
 
     brightnessContrastAct = new QAction(tr("&Brightness"), this);
-    brightnessContrastAct->setEnabled(false);
+    // brightnessContrastAct->setEnabled(false);
+    brightnessContrastAct->setShortcut(tr("Ctrl+B"));
     connect(brightnessContrastAct, SIGNAL(triggered()), this, SLOT(brightnessContrast()));
 
     resampleAct = new QAction(tr("&Resample"), this);
+    // resampleAct->setEnabled(false);
     connect(resampleAct, SIGNAL(triggered()), this, SLOT(imageResample()));
 
 
@@ -357,6 +366,7 @@ void ImageViewer::createMenus()
     effectsMenu->addAction(resampleAct);
     effectsMenu->addAction(brightnessContrastAct);
     effectsMenu->addAction(negativeAct);
+    effectsMenu->setEnabled(false);
 
 
     menuBar()->addMenu(fileMenu);
@@ -373,6 +383,7 @@ void ImageViewer::updateActions()
     zoomInAct->setEnabled(!fitToWindowAct->isChecked());
     zoomOutAct->setEnabled(!fitToWindowAct->isChecked());
     normalSizeAct->setEnabled(!fitToWindowAct->isChecked());
+    effectsMenu->setEnabled(true);
 }
 //! [22]
 
@@ -403,6 +414,7 @@ void ImageViewer::adjustScrollBar(QScrollBar *scrollBar, double factor)
 
 void ImageViewer::cloneWindow(){
     ImageViewer *img = new ImageViewer();
+    img->tempImage = tempImage.copy();
     img->imageLabel->setPixmap(imageLabel->pixmap()->copy());
     img->imageLabel->adjustSize();
     img->scaleFactor = 1.0;
@@ -531,7 +543,7 @@ void ImageViewer::negative(){
         for (int col = 0; col < num_of_cols; ++col) {
             QRgb clr = tempImage.pixel(row,col);
             QColor pixi = QColor(clr);
-            clr = qRgba(255-pixi.red(),255-pixi.green(),255-pixi.blue(),255);
+            clr = qRgba(255-pixi.red(), 255-pixi.green(), 255-pixi.blue(), 255);
             img.setPixel(row,col,clr);
         }
     }
@@ -542,8 +554,63 @@ void ImageViewer::negative(){
 }
 
 void ImageViewer::brightnessContrast(){
-//    QW
-    QImage as;
-    tempImage = tempImage.copy();
+
+    QWidget *brightnWdgt = new QWidget(scrollArea);
+
+    QHBoxLayout *layout = new QHBoxLayout();
+
+    QPushButton *btn = new QPushButton("&Ok");
+    QLabel *lblBrightValue = new QLabel(QString::number(brightness));
+//    lblBrightValue->setProperty("Color", Qt::red);
+//    lblBrightValue->setTextFormat(Qt::RichText);
+//    btn->setSizePolicy(QSizePolicy::MinimumExpanding);
+
+    QSlider *pb = new QSlider();
+    pb->setMaximum(255);
+    pb->setMinimum(0);
+    pb->setSliderPosition(brightness);
+    pb->setOrientation(Qt::Horizontal);
+    pb->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
+
+    layout->addWidget(pb);
+    layout->addWidget(lblBrightValue);
+    layout->addWidget(btn);
+
+
+    brightnWdgt->setLayout(layout);
+    brightnWdgt->setWindowTitle("Brightness and Contrast");
+    brightnWdgt->show();
+
+    QObject::connect(pb, SIGNAL(sliderMoved(int)), this, SLOT(brightnessContrastSlot(int)));
+    QObject::connect(pb, SIGNAL(sliderMoved(int)), lblBrightValue, SLOT(setNum(int)));
+//    QObject::connect(pb, SIGNAL(sliderMoved(int)), lblBrightValue, SLOT(setText(int)));
+    QObject::connect(btn, SIGNAL(clicked()), brightnWdgt, SLOT(close()));
+
 
 }
+
+
+void ImageViewer::brightnessContrastSlot(int x){
+    int num_of_cols = tempImage.height();
+    int num_of_rows = tempImage.width();
+    QImage img = tempImage.copy();
+    brightness = x;
+
+    float y = x/255.0;
+    qDebug() << x << y ;//endl;
+    for(int row = 0 ; row < num_of_rows ; ++row){
+        for (int col = 0; col < num_of_cols; ++col) {
+            QRgb clr = tempImage.pixel(row,col);
+            QColor pixi = QColor(clr);
+            clr = qRgba((int)(pixi.red()*y)%256, (int)(pixi.green()*y)%256, (int)(pixi.blue()*y)%256, 255);
+            img.setPixel(row,col,clr);
+        }
+    }
+
+//    qDebug() << img.hasAlphaChannel() << endl;
+
+     imageLabel->setPixmap(QPixmap::fromImage(img));
+     imageLabel->adjustSize();
+//     tempImage = img.copy();
+}
+

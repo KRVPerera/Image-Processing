@@ -308,8 +308,13 @@ void ImageViewer::createActions()
     negativeAct->setShortcut(tr("Ctrl+R"));
     connect(negativeAct, SIGNAL(triggered()), this, SLOT(negative()));
 
+    brightnessContrastAct = new QAction(tr("&Brightness"), this);
+    connect(brightnessContrastAct, SIGNAL(triggered()), this, SLOT(brightnessContrast()));
+
     resampleAct = new QAction(tr("&Resample"), this);
     connect(resampleAct, SIGNAL(triggered()), this, SLOT(imageResample()));
+
+
 }
 //! [18]
 
@@ -331,6 +336,7 @@ void ImageViewer::createMenus()
     viewMenu->addAction(normalSizeAct);
     viewMenu->addSeparator();
     viewMenu->addAction(fitToWindowAct);
+//    viewMenu->addAction(brightnessContrastAct);
 
     helpMenu = new QMenu(tr("&Help"), this);
     helpMenu->addAction(aboutAct);
@@ -344,7 +350,9 @@ void ImageViewer::createMenus()
     effectsMenu = new QMenu(tr("&Effects"), this);
     effectsMenu->addMenu(colourMenu);
     effectsMenu->addAction(resampleAct);
+    effectsMenu->addAction(brightnessContrastAct);
     effectsMenu->addAction(negativeAct);
+
 
     menuBar()->addMenu(fileMenu);
     menuBar()->addMenu(viewMenu);
@@ -490,7 +498,7 @@ void ImageViewer::blueToggle(){
 void ImageViewer::imageResample(){
     int num_of_cols = tempImage.height();
     int num_of_rows = tempImage.width();
-    QImage img2(num_of_rows/2, num_of_cols/2, QImage::Format_RGB32);
+    QImage img2((num_of_rows +1)/2 , (num_of_cols + 1)/2, QImage::Format_RGB32);
 
     for(int row = 0 ; row < num_of_rows ; row = row + 2){
         for (int col = 0; col < num_of_cols; col = col + 2) {
@@ -527,5 +535,14 @@ void ImageViewer::negative(){
      imageLabel->adjustSize();
      tempImage = img.copy();
 }
+
+void ImageViewer::brightnessContrast(){
+//    QW
+    QImage as;
+    tempImage = tempImage.copy();
+
+}
+
+
 
 

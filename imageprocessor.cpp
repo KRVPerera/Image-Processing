@@ -91,6 +91,7 @@ int ImageProcessor::getWidth(){
     return width;
 }
 
+
 QVector<QPoint> ImageProcessor::getN4neighbours(int row, int col){
     QVector<QPoint> neighbours;
     int rows = row - 1;
@@ -137,3 +138,5 @@ QImage ImageProcessor::negative(){
     setImage(out_image);
     return out_image;
 }
+
+

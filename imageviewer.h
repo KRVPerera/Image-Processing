@@ -81,6 +81,7 @@ private slots:
     void blueToggle();
     void imageResample();
     void negative();
+    void brightnessContrast();
 
 private:
     void createActions();
@@ -116,13 +117,14 @@ private:
     QAction *fitToWindowAct;
     QAction *aboutAct;
     QAction *aboutQtAct;
+
     QAction *saveasAct;
     QAction *resampleAct;
-
     QAction *greenToggleAct;
     QAction *redToggleAct;
     QAction *blueToggleAct;
     QAction *negativeAct;
+    QAction *brightnessContrastAct;
 
     QMenu *fileMenu;
     QMenu *viewMenu;

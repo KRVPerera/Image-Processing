@@ -83,6 +83,8 @@ private slots:
     void negative();
     void brightnessContrast();
     void brightnessContrastSlot(int x);
+    void contrastSlot(int x);
+    void restoreImage();
 
 private:
     void createActions();
@@ -93,6 +95,8 @@ private:
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
     void loadImage(QImage);    
     void nearestNeighbourResample();
+    void contrastLookupUpdate(int x);
+    void brightnessLookupUpdate(int x);
 
     QLabel *imageLabel;
     QScrollArea *scrollArea;
@@ -101,11 +105,14 @@ private:
 
     double scaleFactor;
     QImage tempImage;
+    QImage backupImage;
     bool greenOn;
     bool blueOn;
     bool redOn;
     int brightness;
-
+    int contrast;
+    int contrast_lookup[256];
+    int brightness_lookup[256];
 
 #ifndef QT_NO_PRINTER
     QPrinter printer;

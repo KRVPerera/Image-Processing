@@ -110,7 +110,9 @@ bool ImageViewer::loadFile(const QString &fileName)
     greenOn = true;
     blueOn = true;
     redOn = true;
-    brightness = 255;
+    brightness = 100;
+    contrast = 0;
+    backupImage = QImage();
     return true;
 }
 
@@ -555,59 +557,181 @@ void ImageViewer::negative(){
 
 void ImageViewer::brightnessContrast(){
 
-    QWidget *brightnWdgt = new QWidget(scrollArea);
+    backupImage = tempImage.copy();
+
+    QWidget *brightnWdgt = new QWidget();
+    QWidget *contrastWdgt = new QWidget();
+    QWidget *mainWdgt = new QWidget(scrollArea);
 
     QHBoxLayout *layout = new QHBoxLayout();
+    QHBoxLayout *layout2 = new QHBoxLayout();
+    QVBoxLayout *layout3 = new QVBoxLayout();
 
     QPushButton *btn = new QPushButton("&Ok");
     QLabel *lblBrightValue = new QLabel(QString::number(brightness));
 
+    QPushButton *btnCancel = new QPushButton("&Cancel");
+    QLabel *lblContrastValue = new QLabel(QString::number(brightness));
+
 
     QSlider *pb = new QSlider();
-    pb->setMaximum(255);
+    pb->setMaximum(1000);
     pb->setMinimum(0);
     pb->setSliderPosition(brightness);
     pb->setOrientation(Qt::Horizontal);
-    pb->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
+//    pb->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
+
+    QSlider *pb2 = new QSlider();
+    pb2->setMaximum(100);
+    pb2->setMinimum(-100);
+    pb2->setSliderPosition(contrast);
+    pb2->setOrientation(Qt::Horizontal);
+    pb2->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
+
+
 
     layout->addWidget(pb);
     layout->addWidget(lblBrightValue);
     layout->addWidget(btn);
 
+    layout2->addWidget(pb2);
+    layout2->addWidget(lblContrastValue);
+    layout2->addWidget(btnCancel);
 
     brightnWdgt->setLayout(layout);
-    brightnWdgt->setWindowTitle("Brightness and Contrast");
-    brightnWdgt->show();
+    contrastWdgt->setLayout(layout2);
+
+    layout3->addWidget(brightnWdgt);
+    layout3->addWidget(contrastWdgt);
+
+    mainWdgt->setLayout(layout3);
+
+    mainWdgt->show();
 
     QObject::connect(pb, SIGNAL(sliderMoved(int)), this, SLOT(brightnessContrastSlot(int)));
+    QObject::connect(pb2, SIGNAL(sliderMoved(int)), this, SLOT(contrastSlot(int)));
     QObject::connect(pb, SIGNAL(sliderMoved(int)), lblBrightValue, SLOT(setNum(int)));
-    QObject::connect(btn, SIGNAL(clicked()), brightnWdgt, SLOT(close()));
-
+    QObject::connect(btn, SIGNAL(clicked()), mainWdgt, SLOT(close()));
+    QObject::connect(btnCancel, SIGNAL(clicked()), this, SLOT(restoreImage()));
+    QObject::connect(btnCancel, SIGNAL(clicked()), mainWdgt, SLOT(close()));
 
 }
 
+void ImageViewer::restoreImage(){
+    tempImage = backupImage.copy();
+    imageLabel->setPixmap(QPixmap::fromImage(tempImage));
+    imageLabel->adjustSize();
+}
 
-void ImageViewer::brightnessContrastSlot(int x){
+
+void ImageViewer::contrastSlot(int x){
     int num_of_cols = tempImage.height();
     int num_of_rows = tempImage.width();
-    QImage img = tempImage.copy();
-    brightness = x;
+    QImage img;
+    if(!backupImage.isNull()){
+        img = backupImage.copy();
+    }else{
+        img = tempImage.copy();
+    }
+    contrast = x;
 
-    float y = x/255.0;
-//    qDebug() << x << y ;//endl;
+    contrastLookupUpdate(x);
+
+
     for(int row = 0 ; row < num_of_rows ; ++row){
         for (int col = 0; col < num_of_cols; ++col) {
             QRgb clr = tempImage.pixel(row,col);
             QColor pixi = QColor(clr);
-            clr = qRgba((int)(pixi.red()*y)%256, (int)(pixi.green()*y)%256, (int)(pixi.blue()*y)%256, 255);
+//
+            clr = qRgba(contrast_lookup[pixi.red()], contrast_lookup[pixi.green()], contrast_lookup[pixi.blue()], 255);
             img.setPixel(row,col,clr);
         }
+
     }
+    qDebug() << contrast_lookup[255] << 255;
+    qDebug() << contrast_lookup[0] << 0;
+    qDebug() << contrast_lookup[150] << 150;
 
 //    qDebug() << img.hasAlphaChannel() << endl;
 
      imageLabel->setPixmap(QPixmap::fromImage(img));
      imageLabel->adjustSize();
-//     tempImage = img.copy();
+//     backupImage = img.copy();
+}
+
+
+void ImageViewer::contrastLookupUpdate(int x){
+
+    double upVal = 0;
+    double xx = x;
+    double c = (100.0 + xx) / 100.0;
+    c *= c;
+
+    for (int i = 0; i < 256; ++i) {
+        upVal = (double)i;
+        upVal /= 255.0;
+        upVal -=0.5;
+        upVal *= c;
+        upVal += 0.5;
+        upVal *= 255;
+
+        if(upVal < 0){
+            upVal = 0;
+        }else if(upVal > 255){
+            upVal = 255;
+        }
+
+        contrast_lookup[i] = (int)upVal;
+//        qDebug() << contrast_lookup[i] ;
+    }
+
+}
+
+
+void ImageViewer::brightnessLookupUpdate(int x){
+    float y;
+    int upVal;
+
+    for (int i = 0; i < 256; ++i) {
+        y = x/(100.0);
+        upVal = (int)(i*y);
+
+        if(upVal < 0){
+            upVal = 0;
+        }else if(upVal > 255){
+            upVal = 255;
+        }
+
+        brightness_lookup[i] = upVal;
+    }
+
+}
+
+void ImageViewer::brightnessContrastSlot(int x){
+    int num_of_cols = tempImage.height();
+    int num_of_rows = tempImage.width();
+    QImage img;
+    if(!backupImage.isNull()){
+        img = backupImage.copy();
+    }else{
+        img = tempImage.copy();
+    }
+    brightness = x;
+    brightnessLookupUpdate(x);
+
+    float y = x/(255.0);
+    for(int row = 0 ; row < num_of_rows ; ++row){
+        for (int col = 0; col < num_of_cols; ++col) {
+            QRgb clr = tempImage.pixel(row,col);
+            QColor pixi = QColor(clr);
+            clr = qRgba(brightness_lookup[pixi.red()], brightness_lookup[pixi.green()], brightness_lookup[pixi.blue()], 255);
+            img.setPixel(row,col,clr);
+        }
+    }
+
+
+     imageLabel->setPixmap(QPixmap::fromImage(img));
+     imageLabel->adjustSize();
+//     backupImage = img.copy();
 }
 

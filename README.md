@@ -8,9 +8,8 @@ An extention to QT image viewer sample<br>
  -> Bighteness<br>
  -> Contrast<br>
  -> RGB Histograms<br>
+ ->Normalization (Contrast Stretching)<br>
 <br>
 <b>Future </b><br>
- -> Resampling<br>
- -> Scaling<br>
- -> Contrast Stretching<br>
- -> Normalization<br>
+ -> Resampling (Scaling)<br>
+

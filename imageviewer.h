@@ -85,6 +85,7 @@ private slots:
     void brightnessContrastSlot(int x);
     void contrastSlot(int x);
     void restoreImage();
+    void showHistograms();
 
 private:
     void createActions();
@@ -97,6 +98,8 @@ private:
     void nearestNeighbourResample();
     void contrastLookupUpdate(int x);
     void brightnessLookupUpdate(int x);
+    void updateHistograms();
+
 
     QLabel *imageLabel;
     QScrollArea *scrollArea;
@@ -113,6 +116,10 @@ private:
     int contrast;
     int contrast_lookup[256];
     int brightness_lookup[256];
+    int red_histo[256];
+    int green_histo[256];
+    int blue_histo[256];
+    int histoMax;
 
 #ifndef QT_NO_PRINTER
     QPrinter printer;
@@ -136,6 +143,7 @@ private:
     QAction *blueToggleAct;
     QAction *negativeAct;
     QAction *brightnessContrastAct;
+    QAction *histogramsAct;
 
     QMenu *fileMenu;
     QMenu *viewMenu;

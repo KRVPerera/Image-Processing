@@ -50,8 +50,8 @@
 #include <QDebug>
 
 #include "imageviewer.h"
+#include "qcustomplot.h"
 
-//#include "imageprocessor.h"
 
 
 //! [0]
@@ -330,6 +330,10 @@ void ImageViewer::createActions()
     // resampleAct->setEnabled(false);
     connect(resampleAct, SIGNAL(triggered()), this, SLOT(imageResample()));
 
+    histogramsAct = new QAction(tr("&Histograms"), this);
+    // resampleAct->setEnabled(false);
+    connect(histogramsAct, SIGNAL(triggered()), this, SLOT(showHistograms()));
+
 
 }
 //! [18]
@@ -368,6 +372,7 @@ void ImageViewer::createMenus()
     effectsMenu->addAction(resampleAct);
     effectsMenu->addAction(brightnessContrastAct);
     effectsMenu->addAction(negativeAct);
+    effectsMenu->addAction(histogramsAct);
     effectsMenu->setEnabled(false);
 
 
@@ -719,7 +724,7 @@ void ImageViewer::brightnessContrastSlot(int x){
     brightness = x;
     brightnessLookupUpdate(x);
 
-    float y = x/(255.0);
+//    float y = x/(255.0);
     for(int row = 0 ; row < num_of_rows ; ++row){
         for (int col = 0; col < num_of_cols; ++col) {
             QRgb clr = tempImage.pixel(row,col);
@@ -735,3 +740,116 @@ void ImageViewer::brightnessContrastSlot(int x){
 //     backupImage = img.copy();
 }
 
+
+void ImageViewer::updateHistograms(){
+    int num_of_cols = tempImage.height();
+    int num_of_rows = tempImage.width();
+
+    for(int i = 0; i < 256; ++i){
+        red_histo[i] = 0;
+        green_histo[i] = 0;
+        blue_histo[i] = 0;
+    }
+
+
+
+    for(int row = 0 ; row < num_of_rows ; ++row){
+        for (int col = 0; col < num_of_cols; ++col) {
+            QRgb clr = tempImage.pixel(row,col);
+            QColor pixi = QColor(clr);
+            red_histo[pixi.red()] += 1;
+            green_histo[pixi.green()] += 1;
+            blue_histo[pixi.blue()] += 1;
+
+        }
+    }
+}
+
+void ImageViewer::showHistograms(){
+    updateHistograms();
+    int redMax, greenMax, blueMax;
+    QCustomPlot *customPlot = new QCustomPlot();
+    QCustomPlot *customPlot2 = new QCustomPlot();
+    QCustomPlot *customPlot3 = new QCustomPlot();
+    redMax = 0;
+    greenMax = 0;
+    blueMax = 0;
+    // generate some data:
+
+    QVector<double> x(256), r(256), g(256), b(256); // initialize with entries 0..100
+    for (int i=0; i<256; ++i)
+    {
+      x[i] = i; // x goes from 0 to 255
+      r[i] = red_histo[i];
+      g[i] = green_histo[i];
+      b[i] = blue_histo[i];
+      if(redMax <r[i]){
+          redMax = r[i];
+      }
+      if(greenMax < g[i]){
+          greenMax = g[i];
+      }
+
+      if(blueMax < g[i]){
+          blueMax = b[i];
+      }
+    }
+
+    customPlot->xAxis->setLabel("Red Intensity");
+    customPlot->yAxis->setLabel("Pixel Count");
+    customPlot->xAxis->setRange(0, 256);
+    customPlot->yAxis->setRange(0, redMax +10);
+
+    customPlot2->xAxis->setLabel("Green Intensity");
+    customPlot2->yAxis->setLabel("Pixel Count");
+    customPlot2->xAxis->setRange(0, 256);
+    customPlot2->yAxis->setRange(0, greenMax +10);
+
+    customPlot3->xAxis->setLabel("Blue Intensity");
+    customPlot3->yAxis->setLabel("Pixel Count");
+    customPlot3->xAxis->setRange(0, 256);
+    customPlot3->yAxis->setRange(0, blueMax +10);
+
+    QCPBars *bars1 = new QCPBars(customPlot->xAxis, customPlot->yAxis);
+    customPlot->addPlottable(bars1);
+    bars1->setWidth((9/(double)x.size())+1);
+    bars1->setPen(Qt::NoPen);
+    bars1->setBrush(QColor(255, 0, 0, 255));
+    bars1->setData(x, r);
+
+    QCPBars *greenBar = new QCPBars(customPlot2->xAxis, customPlot2->yAxis);
+    customPlot2->addPlottable(greenBar);
+    greenBar->setWidth((9/(double)x.size())+1);
+    greenBar->setPen(Qt::NoPen);
+    greenBar->setBrush(QColor(0, 255, 0, 255));
+    greenBar->setData(x, g);
+
+    QCPBars *blueBar = new QCPBars(customPlot3->xAxis, customPlot3->yAxis);
+    customPlot3->addPlottable(blueBar);
+    blueBar->setWidth((9/(double)x.size())+1);
+    blueBar->setPen(Qt::NoPen);
+    blueBar->setBrush(QColor(0, 0, 255, 255));
+    blueBar->setData(x, g);
+
+
+    customPlot->replot();
+    customPlot->setViewport(QRect(10,10,20,20));
+    customPlot->setWindowTitle("Red histogram");
+    customPlot->show();
+    customPlot->resize(300,200);
+
+
+    customPlot2->replot();
+    customPlot2->setViewport(QRect(50,30,50,60));
+    customPlot2->setWindowTitle("Green histogram");
+    customPlot2->show();
+    customPlot2->resize(300,200);
+
+    customPlot3->replot();
+    customPlot->setWindowOpacity(50);
+    customPlot3->setViewport(QRect(50,30,20,20));
+    customPlot3->setWindowTitle("Blue histogram");
+    customPlot3->show();
+    customPlot3->resize(300,200);
+
+}

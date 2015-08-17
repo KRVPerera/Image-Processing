@@ -43,11 +43,8 @@
 #include <QDebug>
 
 #include "imageviewer.h"
-//#include "pixel.h"
 #include "contraststretchingdialog.h"
-#include "normalizesizingdialog.h"
 
-//#include "imageprocessor.h"
 
 int main(int argc, char *argv[])
 {

@@ -51,6 +51,7 @@
 
 #include "imageviewer.h"
 #include "qcustomplot.h"
+#include "contraststretchingdialog.h"
 
 
 
@@ -331,9 +332,10 @@ void ImageViewer::createActions()
     connect(resampleAct, SIGNAL(triggered()), this, SLOT(imageResample()));
 
     histogramsAct = new QAction(tr("&Histograms"), this);
-    // resampleAct->setEnabled(false);
     connect(histogramsAct, SIGNAL(triggered()), this, SLOT(showHistograms()));
 
+    normalizationAct = new QAction(tr("&Normalize"), this);
+    connect(normalizationAct, SIGNAL(triggered()), this, SLOT(normalization()));
 
 }
 //! [18]
@@ -373,6 +375,7 @@ void ImageViewer::createMenus()
     effectsMenu->addAction(brightnessContrastAct);
     effectsMenu->addAction(negativeAct);
     effectsMenu->addAction(histogramsAct);
+    effectsMenu->addAction(normalizationAct);
     effectsMenu->setEnabled(false);
 
 
@@ -887,4 +890,48 @@ void ImageViewer::showHistograms(){
     customPlot3->show();
     customPlot3->resize(300,200);
 
+}
+
+
+
+
+void ImageViewer::normalize(int min, int max){
+    updateHistograms();
+    qDebug() << "normalize function" << min << max;
+    qDebug() << "normalize function" << redMax << redMin;
+    qDebug() << "normalize function" << greenMax << greenMin;
+    qDebug() << "normalize function" << blueMax << blueMin;
+    int num_of_cols = tempImage.height();
+    int num_of_rows = tempImage.width();
+    QImage img = tempImage.copy();
+    int ro, go, bo, ra, ga, ba;
+
+
+    for(int row = 0 ; row < num_of_rows ; ++row){
+        for (int col = 0; col < num_of_cols; ++col) {
+            QRgb clr = tempImage.pixel(row,col);
+            QColor pixi = QColor(clr);
+            ro = pixi.red();
+            go = pixi.green();
+            bo = pixi.blue();
+            ra = (ro - redMin)*((max-min))/(redMax-redMin)*1.0 + min;
+            ga = (go -greenMin)*((max-min))/(greenMax-greenMin)*1.0 + min;
+            ba = (bo - blueMin)*((max-min))/(blueMax-blueMin)*1.0 + min;
+
+            clr = qRgba(ra, ga, ba, 255);
+            img.setPixel(row,col,clr);
+        }
+    }
+
+     imageLabel->setPixmap(QPixmap::fromImage(img));
+     imageLabel->adjustSize();
+     tempImage = img.copy();
+
+}
+
+
+void ImageViewer::normalization(){
+    ContrastStretchingDialog *ad = new ContrastStretchingDialog();
+    QObject::connect(ad, SIGNAL(valuesUpdated(int,int)), this, SLOT(normalize(int,int)));
+    ad->show();
 }

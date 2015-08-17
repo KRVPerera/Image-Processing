@@ -86,6 +86,8 @@ private slots:
     void contrastSlot(int x);
     void restoreImage();
     void showHistograms();
+    void normalization();
+    void normalize(int min, int max);
 
 private:
     void createActions();
@@ -155,7 +157,7 @@ private:
     QAction *negativeAct;
     QAction *brightnessContrastAct;
     QAction *histogramsAct;
-    QAction *linearNomalizationAct;
+    QAction *normalizationAct;
 
     QMenu *fileMenu;
     QMenu *viewMenu;

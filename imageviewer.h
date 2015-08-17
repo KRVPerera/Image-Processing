@@ -119,7 +119,18 @@ private:
     int red_histo[256];
     int green_histo[256];
     int blue_histo[256];
-    int histoMax;
+
+    int redMax;
+    int redMaxCount;
+    int redMin;
+
+    int greenMax;
+    int greenMaxCount;
+    int greenMin;
+
+    int blueMax;
+    int blueMaxCount;
+    int blueMin;
 
 #ifndef QT_NO_PRINTER
     QPrinter printer;
@@ -144,6 +155,7 @@ private:
     QAction *negativeAct;
     QAction *brightnessContrastAct;
     QAction *histogramsAct;
+    QAction *linearNomalizationAct;
 
     QMenu *fileMenu;
     QMenu *viewMenu;

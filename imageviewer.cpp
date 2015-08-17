@@ -737,29 +737,72 @@ void ImageViewer::brightnessContrastSlot(int x){
 
      imageLabel->setPixmap(QPixmap::fromImage(img));
      imageLabel->adjustSize();
-//     backupImage = img.copy();
 }
 
 
 void ImageViewer::updateHistograms(){
     int num_of_cols = tempImage.height();
     int num_of_rows = tempImage.width();
-
+    int r,g,b;
     for(int i = 0; i < 256; ++i){
         red_histo[i] = 0;
         green_histo[i] = 0;
         blue_histo[i] = 0;
     }
 
+    redMax = 0;
+    redMin = 255;
+    greenMax = 0;
+    greenMin = 255;
+    blueMax = 0;
+    blueMin = 255;
+    redMaxCount = 0;
+    greenMaxCount = 0;
+    blueMaxCount = 0;
 
 
     for(int row = 0 ; row < num_of_rows ; ++row){
         for (int col = 0; col < num_of_cols; ++col) {
             QRgb clr = tempImage.pixel(row,col);
             QColor pixi = QColor(clr);
-            red_histo[pixi.red()] += 1;
-            green_histo[pixi.green()] += 1;
-            blue_histo[pixi.blue()] += 1;
+            r = pixi.red();
+            g = pixi.green();
+            b = pixi.blue();
+            red_histo[r] += 1;
+            green_histo[g] += 1;
+            blue_histo[b] += 1;
+
+            if(redMaxCount < red_histo[r]){
+                redMaxCount = red_histo[r];
+            }
+            if(greenMaxCount < green_histo[g]){
+                greenMaxCount = green_histo[g];
+            }
+
+            if(blueMaxCount < blue_histo[b]){
+                blueMaxCount = blue_histo[b];
+            }
+
+            if(r > redMax){
+                redMax = r;
+            }
+            if( r < redMin ){
+                redMin = r;
+            }
+
+            if(g > greenMax){
+                greenMax = g;
+            }
+            if( g < greenMin ){
+                greenMin = g;
+            }
+
+            if(b > blueMax){
+                blueMax = b;
+            }
+            if(b < blueMin ){
+                blueMin = b;
+            }
 
         }
     }
@@ -771,9 +814,9 @@ void ImageViewer::showHistograms(){
     QCustomPlot *customPlot = new QCustomPlot();
     QCustomPlot *customPlot2 = new QCustomPlot();
     QCustomPlot *customPlot3 = new QCustomPlot();
-    redMax = 0;
-    greenMax = 0;
-    blueMax = 0;
+    redMax = redMaxCount;
+    greenMax = greenMaxCount;
+    blueMax = blueMaxCount;
     // generate some data:
 
     QVector<double> x(256), r(256), g(256), b(256); // initialize with entries 0..100
@@ -783,17 +826,9 @@ void ImageViewer::showHistograms(){
       r[i] = red_histo[i];
       g[i] = green_histo[i];
       b[i] = blue_histo[i];
-      if(redMax <r[i]){
-          redMax = r[i];
-      }
-      if(greenMax < g[i]){
-          greenMax = g[i];
-      }
 
-      if(blueMax < g[i]){
-          blueMax = b[i];
-      }
     }
+
 
     customPlot->xAxis->setLabel("Red Intensity");
     customPlot->yAxis->setLabel("Pixel Count");

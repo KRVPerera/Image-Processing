@@ -5,12 +5,12 @@ An extention to QT image viewer sample<br>
  -> Save as<br>
  -> RGB colour filters<br>
  -> Negative of a image<br>
+ -> Bighteness<br>
+ -> Contrast<br>
 <br>
 <b>Future </b><br>
  -> RGB Histograms<br>
  -> Resampling<br>
  -> Scaling<br>
- -> Bighteness<br>
- -> Contrast<br>
  -> Contrast Stretching<br>
  -> Normalization<br>

@@ -7,9 +7,9 @@ An extention to QT image viewer sample<br>
  -> Negative of a image<br>
  -> Bighteness<br>
  -> Contrast<br>
+ -> RGB Histograms<br>
 <br>
 <b>Future </b><br>
- -> RGB Histograms<br>
  -> Resampling<br>
  -> Scaling<br>
  -> Contrast Stretching<br>

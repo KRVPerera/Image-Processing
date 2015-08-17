@@ -7,7 +7,7 @@ ContrastStretchingDialog::ContrastStretchingDialog(QWidget *parent) :
     ui(new Ui::ContrastStretchingDialog)
 {
     ui->setupUi(this);
-    QObject::connect(this, SIGNAL(valuesUpdated(int,int)), this, SLOT(print_minmax(int,int)));
+//    QObject::connect(this, SIGNAL(valuesUpdated(int,int)), this, SLOT(print_minmax(int,int)));
 }
 
 ContrastStretchingDialog::~ContrastStretchingDialog()

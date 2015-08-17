@@ -45,13 +45,12 @@
 
 #include <QPushButton>
 #include <QSlider>
-
-
 #include <QDebug>
 
 #include "imageviewer.h"
 #include "qcustomplot.h"
 #include "contraststretchingdialog.h"
+//#include "normalizesizingdialog.h"
 
 
 
@@ -525,23 +524,29 @@ void ImageViewer::blueToggle(){
 void ImageViewer::imageResample(){
     int num_of_cols = tempImage.height();
     int num_of_rows = tempImage.width();
-    QImage img2((num_of_rows +1)/2 , (num_of_cols + 1)/2, QImage::Format_RGB32);
+////    ResampleSizingDialog *ndlg = new ResampleSizingDialog();
+//    ndlg->show();
+//    ndlg->setWidth(num_of_rows);
+//    ndlg->setHeight(num_of_cols);
 
-    for(int row = 0 ; row < num_of_rows ; row = row + 2){
-        for (int col = 0; col < num_of_cols; col = col + 2) {
-            if(row%2 == 0 && col%2 == 0){
-                QRgb clr = tempImage.pixel(row,col);
-                QColor pixi = QColor(clr);
-                clr = qRgba(pixi.red(),pixi.green(),pixi.blue(),pixi.alpha());
-                img2.setPixel(row/2,col/2,clr);
-            }
 
-        }
-    }
+//    QImage img2((num_of_rows +1)/2 , (num_of_cols + 1)/2, QImage::Format_RGB32);
 
-     imageLabel->setPixmap(QPixmap::fromImage(img2));
-     imageLabel->adjustSize();
-     tempImage = img2.copy();
+//    for(int row = 0 ; row < num_of_rows ; row = row + 2){
+//        for (int col = 0; col < num_of_cols; col = col + 2) {
+//            if(row%2 == 0 && col%2 == 0){
+//                QRgb clr = tempImage.pixel(row,col);
+//                QColor pixi = QColor(clr);
+//                clr = qRgba(pixi.red(),pixi.green(),pixi.blue(),pixi.alpha());
+//                img2.setPixel(row/2,col/2,clr);
+//            }
+
+//        }
+//    }
+
+//     imageLabel->setPixmap(QPixmap::fromImage(img2));
+//     imageLabel->adjustSize();
+//     tempImage = img2.copy();
 }
 
 void ImageViewer::negative(){
@@ -820,7 +825,6 @@ void ImageViewer::showHistograms(){
     redMax = redMaxCount;
     greenMax = greenMaxCount;
     blueMax = blueMaxCount;
-    // generate some data:
 
     QVector<double> x(256), r(256), g(256), b(256); // initialize with entries 0..100
     for (int i=0; i<256; ++i)
@@ -831,7 +835,6 @@ void ImageViewer::showHistograms(){
       b[i] = blue_histo[i];
 
     }
-
 
     customPlot->xAxis->setLabel("Red Intensity");
     customPlot->yAxis->setLabel("Pixel Count");
@@ -892,15 +895,8 @@ void ImageViewer::showHistograms(){
 
 }
 
-
-
-
 void ImageViewer::normalize(int min, int max){
     updateHistograms();
-    qDebug() << "normalize function" << min << max;
-    qDebug() << "normalize function" << redMax << redMin;
-    qDebug() << "normalize function" << greenMax << greenMin;
-    qDebug() << "normalize function" << blueMax << blueMin;
     int num_of_cols = tempImage.height();
     int num_of_rows = tempImage.width();
     QImage img = tempImage.copy();
@@ -931,7 +927,7 @@ void ImageViewer::normalize(int min, int max){
 
 
 void ImageViewer::normalization(){
-    ContrastStretchingDialog *ad = new ContrastStretchingDialog();
+    ContrastStretchingDialog *ad = new ContrastStretchingDialog(this);
     QObject::connect(ad, SIGNAL(valuesUpdated(int,int)), this, SLOT(normalize(int,int)));
     ad->show();
 }

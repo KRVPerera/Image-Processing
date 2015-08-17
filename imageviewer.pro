@@ -11,9 +11,12 @@ QT += core gui xml printsupport
 
 # Input
 HEADERS += catch.hpp imageviewer.h pixel.h qcustomplot.h \
-    contraststretchingdialog.h
+    contraststretchingdialog.h \
+    resamplingscaledialog.h
 SOURCES += imageviewer.cpp main.cpp pixel.cpp qcustomplot.cpp \
-    contraststretchingdialog.cpp
+    contraststretchingdialog.cpp \
+    resamplingscaledialog.cpp
 
 FORMS += \
-    contraststretchingdialog.ui
+    contraststretchingdialog.ui \
+    resamplingscaledialog.ui

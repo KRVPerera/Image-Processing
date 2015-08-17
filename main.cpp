@@ -45,7 +45,7 @@
 #include "imageviewer.h"
 //#include "pixel.h"
 #include "contraststretchingdialog.h"
-
+#include "normalizesizingdialog.h"
 
 //#include "imageprocessor.h"
 
@@ -68,6 +68,9 @@ int main(int argc, char *argv[])
 
     imageViewer.loadFile("/home/drex/Pictures/1.jpg");
     imageViewer.show();
+
+//    NormalizeSizingDialog *pp = new NormalizeSizingDialog();
+//    pp->show();
 
 //    Pixel pix(10,20,30);
 //    qDebug() << pix.getBlue() ;

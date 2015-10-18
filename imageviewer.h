@@ -89,6 +89,7 @@ private slots:
     void normalization();
     void normalize(int min, int max);
     void grayImage();
+    void bitPlaneRunLengthCoding();
 
 private:
     void createActions();
@@ -160,6 +161,7 @@ private:
     QAction *histogramsAct;
     QAction *normalizationAct;
     QAction *grayImageAct;
+    QAction *bitPlaneRunLengthCodingAct;
 
     QMenu *fileMenu;
     QMenu *viewMenu;

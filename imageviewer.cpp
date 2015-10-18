@@ -341,12 +341,14 @@ void ImageViewer::createActions()
     connect(grayImageAct, SIGNAL(triggered()), this, SLOT(grayImage()));
 
 
+    bitPlaneRunLengthCodingAct = new QAction(tr("Bit Plane Run Length Coding"), this);
+    connect(bitPlaneRunLengthCodingAct, SIGNAL(triggered()), this, SLOT(bitPlaneRunLengthCoding()));
 }
 //! [18]
 
 //! [19]
 void ImageViewer::createMenus()
-//! [19] //! [20]
+//! [19] //! [20]A
 {
     fileMenu = new QMenu(tr("&File"), this);
     fileMenu->addAction(openAct);
@@ -381,6 +383,7 @@ void ImageViewer::createMenus()
     effectsMenu->addAction(histogramsAct);
     effectsMenu->addAction(normalizationAct);
     effectsMenu->addAction(grayImageAct);
+    effectsMenu->addAction(bitPlaneRunLengthCodingAct);
     effectsMenu->setEnabled(false);
 
 
@@ -530,8 +533,8 @@ void ImageViewer::blueToggle(){
 }
 
 void ImageViewer::imageResample(){
-    int num_of_cols = tempImage.height();
-    int num_of_rows = tempImage.width();
+    //int num_of_cols = tempImage.height();
+    //int num_of_rows = tempImage.width();
     ResamplingScaleDialog *ndlg = new ResamplingScaleDialog();
     ndlg->show();
     //ndlg->setWidth(num_of_rows);
@@ -938,7 +941,7 @@ void ImageViewer::grayImage(){
     int ro, go, bo, y;
     char x;
     QImage image(num_of_rows, num_of_cols, QImage::Format_Grayscale8);
-    QRgb value;
+    //QRgb value;
 
     for(int row = 0 ; row < num_of_rows ; ++row){
         for (int col = 0; col < num_of_cols; ++col) {
@@ -947,9 +950,10 @@ void ImageViewer::grayImage(){
             ro = pixi.red();
             go = pixi.green();
             bo = pixi.blue();
+
             //Y = 0.299R + 0.587G + 0.114B
             y = (int)(0.299*ro + 0.587*go + 0.114*bo);
-            x = y;
+            x = (char)y;
             //qDebug() << y;
             image.setPixel(row, col,x);
         }
@@ -959,6 +963,50 @@ void ImageViewer::grayImage(){
      imageLabel->adjustSize();
      tempImage = image.copy();
      scaleImage(1);
+}
+
+
+
+void ImageViewer::bitPlaneRunLengthCoding(){
+    int num_of_cols = tempImage.height();
+    int num_of_rows = tempImage.width();
+    int planes;
+    int r, g, b;
+
+    QImage img = tempImage.copy();
+    planes = img.depth();
+
+    QVector<QBitArray> vectorPlanes;
+
+    for(int row = 0 ; row < num_of_rows ; ++row){
+        for (int col = 0; col < num_of_cols; ++col) {
+            QRgb clr = tempImage.pixel(row,col);
+            QColor pixi = QColor(clr);
+            QBitArray bitPlanes(planes);
+
+            if(planes == 32){
+                r = pixi.red();
+                g =  pixi.green();
+                b =  pixi.blue();
+                for (int i = 0; i < 8; ++i) {
+                    bitPlanes[i]    = r && 2^(8-i);
+                    bitPlanes[i+8]  = g && 2^(8-i);
+                    bitPlanes[i+16] = b && 2^(8-i);
+                }
+            }else if(planes == 8){
+                for (int i = 0; i < 8; ++i) {
+                    bitPlanes[i]    = pixi.value() && 2^(8-i);
+                }
+            }
+            vectorPlanes.append(bitPlanes);
+        }
+    }
+
+    qDebug() << vectorPlanes.size() << " End " ;
+//     imageLabel->setPixmap(QPixmap::fromImage(image));
+//     imageLabel->adjustSize();
+//     tempImage = image.copy();
+//     scaleImage(1);
 }
 
 

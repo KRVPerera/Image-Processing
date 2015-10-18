@@ -88,6 +88,7 @@ private slots:
     void showHistograms();
     void normalization();
     void normalize(int min, int max);
+    void grayImage();
 
 private:
     void createActions();
@@ -158,6 +159,7 @@ private:
     QAction *brightnessContrastAct;
     QAction *histogramsAct;
     QAction *normalizationAct;
+    QAction *grayImageAct;
 
     QMenu *fileMenu;
     QMenu *viewMenu;

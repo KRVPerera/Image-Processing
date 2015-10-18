@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 
 
 
-    imageViewer.loadFile("/home/drex/Pictures/1.jpg");
+    //imageViewer.loadFile("/home/drex/Pictures/1.jpg");
     imageViewer.show();
 
 //    NormalizeSizingDialog *pp = new NormalizeSizingDialog();

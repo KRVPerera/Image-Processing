@@ -51,6 +51,7 @@
 #include "qcustomplot.h"
 #include "contraststretchingdialog.h"
 //#include "normalizesizingdialog.h"
+#include "resamplingscaledialog.h"
 
 
 
@@ -84,7 +85,7 @@ bool ImageViewer::loadFile(const QString &fileName)
 
     if (image.isNull()) {
         QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
-                                 tr("Cannot load %1.").arg(QDir::toNativeSeparators(fileName)));
+                                 tr("Cannot load %1. ").arg(QDir::toNativeSeparators(fileName)));
         setWindowFilePath(QString());
 
         imageLabel->setPixmap(QPixmap());
@@ -336,6 +337,10 @@ void ImageViewer::createActions()
     normalizationAct = new QAction(tr("&Normalize"), this);
     connect(normalizationAct, SIGNAL(triggered()), this, SLOT(normalization()));
 
+    grayImageAct = new QAction(tr("Gray Image"), this);
+    connect(grayImageAct, SIGNAL(triggered()), this, SLOT(grayImage()));
+
+
 }
 //! [18]
 
@@ -375,6 +380,7 @@ void ImageViewer::createMenus()
     effectsMenu->addAction(negativeAct);
     effectsMenu->addAction(histogramsAct);
     effectsMenu->addAction(normalizationAct);
+    effectsMenu->addAction(grayImageAct);
     effectsMenu->setEnabled(false);
 
 
@@ -410,6 +416,8 @@ void ImageViewer::scaleImage(double factor)
     zoomInAct->setEnabled(scaleFactor < 3.0);
     zoomOutAct->setEnabled(scaleFactor > 0.333);
 }
+
+
 //! [24]
 
 //! [25]
@@ -524,10 +532,10 @@ void ImageViewer::blueToggle(){
 void ImageViewer::imageResample(){
     int num_of_cols = tempImage.height();
     int num_of_rows = tempImage.width();
-////    ResampleSizingDialog *ndlg = new ResampleSizingDialog();
-//    ndlg->show();
-//    ndlg->setWidth(num_of_rows);
-//    ndlg->setHeight(num_of_cols);
+    ResamplingScaleDialog *ndlg = new ResamplingScaleDialog();
+    ndlg->show();
+    //ndlg->setWidth(num_of_rows);
+    //ndlg->setHeight(num_of_cols);
 
 
 //    QImage img2((num_of_rows +1)/2 , (num_of_cols + 1)/2, QImage::Format_RGB32);
@@ -661,9 +669,9 @@ void ImageViewer::contrastSlot(int x){
         }
 
     }
-    qDebug() << contrast_lookup[255] << 255;
-    qDebug() << contrast_lookup[0] << 0;
-    qDebug() << contrast_lookup[150] << 150;
+ //   qDebug() << contrast_lookup[255] << 255;
+  //  qDebug() << contrast_lookup[0] << 0;
+   // qDebug() << contrast_lookup[150] << 150;
 
 //    qDebug() << img.hasAlphaChannel() << endl;
 
@@ -922,7 +930,35 @@ void ImageViewer::normalize(int min, int max){
      imageLabel->setPixmap(QPixmap::fromImage(img));
      imageLabel->adjustSize();
      tempImage = img.copy();
+}
 
+void ImageViewer::grayImage(){
+    int num_of_cols = tempImage.height();
+    int num_of_rows = tempImage.width();
+    int ro, go, bo, y;
+    char x;
+    QImage image(num_of_rows, num_of_cols, QImage::Format_Grayscale8);
+    QRgb value;
+
+    for(int row = 0 ; row < num_of_rows ; ++row){
+        for (int col = 0; col < num_of_cols; ++col) {
+            QRgb clr = tempImage.pixel(row,col);
+            QColor pixi = QColor(clr);
+            ro = pixi.red();
+            go = pixi.green();
+            bo = pixi.blue();
+            //Y = 0.299R + 0.587G + 0.114B
+            y = (int)(0.299*ro + 0.587*go + 0.114*bo);
+            x = y;
+            //qDebug() << y;
+            image.setPixel(row, col,x);
+        }
+    }
+
+     imageLabel->setPixmap(QPixmap::fromImage(image));
+     imageLabel->adjustSize();
+     tempImage = image.copy();
+     scaleImage(1);
 }
 
 

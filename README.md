@@ -8,8 +8,13 @@ An extention to QT image viewer sample<br>
  -> Bighteness<br>
  -> Contrast<br>
  -> RGB Histograms<br>
- ->Normalization (Contrast Stretching)<br>
+ -> Normalization (Contrast Stretching)<br>
+ -> Bit Plane Coding <br>
+ -> RGB to Gray Image <br>
 <br>
 <b>Future </b><br>
  -> Resampling (Scaling)<br>
+ -> Huffman coding of 8bpp image
+ -> LOG filter of an image (5x5 and 7x7 mask)
+ -> Filter image based on a user secified 3x3 mask
 

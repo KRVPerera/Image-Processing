@@ -46,12 +46,17 @@
 #include <QPushButton>
 #include <QSlider>
 #include <QDebug>
+#include <QFile>
+#include <QTextStream>
+
+
 
 #include "imageviewer.h"
 #include "qcustomplot.h"
 #include "contraststretchingdialog.h"
 //#include "normalizesizingdialog.h"
 #include "resamplingscaledialog.h"
+
 
 
 
@@ -82,6 +87,7 @@ ImageViewer::ImageViewer()
 bool ImageViewer::loadFile(const QString &fileName)
 {
     QImage image(fileName);
+    openedFileName = fileName;
 
     if (image.isNull()) {
         QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
@@ -1002,11 +1008,49 @@ void ImageViewer::bitPlaneRunLengthCoding(){
         }
     }
 
-    qDebug() << vectorPlanes.size() << " End " ;
-//     imageLabel->setPixmap(QPixmap::fromImage(image));
-//     imageLabel->adjustSize();
-//     tempImage = image.copy();
-//     scaleImage(1);
+    if(planes == 32) planes = planes - 8;
+
+    QVector< QVector<int> > bitpl;
+    bitpl.resize(planes);
+
+    for(int i = 0 ; i < planes; i++){
+        int prev = vectorPlanes[0].at(i);
+//        qDebug() << prev << " " << vectorPlanes[0].at(i);
+        int curr = 0;
+        int count = 1;
+        for(int pl = 1; pl < num_of_cols*num_of_rows; pl++){
+            curr = vectorPlanes[pl].at(i);
+            if(prev == curr){
+                count++;
+            }else{
+                bitpl[i].append(prev);
+                bitpl[i].append(count);
+                count = 1;
+            }
+            prev = curr;
+        }
+
+    }
+
+
+        QString filename = openedFileName;
+        filename.chop(4);
+        filename.append(".txt");
+
+        QFile file(filename);
+        if (file.open(QIODevice::ReadWrite)) {
+            QTextStream stream(&file);
+            for(int i = 0; i < planes; i++){
+                stream << "Plane " << i+1 << endl;
+                while(!bitpl[i].isEmpty()){
+                    stream << bitpl[i].takeLast() << "-" << bitpl[i].takeLast();
+                    stream << " ";
+                }
+                stream << endl;
+            }
+        }
+        file.close();
+
 }
 
 

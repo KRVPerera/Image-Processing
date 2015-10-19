@@ -113,6 +113,7 @@ private:
     double scaleFactor;
     QImage tempImage;
     QImage backupImage;
+    QString openedFileName;
     bool greenOn;
     bool blueOn;
     bool redOn;

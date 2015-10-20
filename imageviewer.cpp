@@ -48,7 +48,7 @@
 #include <QDebug>
 #include <QFile>
 #include <QTextStream>
-
+#include <QtMath>
 
 
 #include "imageviewer.h"
@@ -349,6 +349,13 @@ void ImageViewer::createActions()
 
     bitPlaneRunLengthCodingAct = new QAction(tr("Bit Plane Run Length Coding"), this);
     connect(bitPlaneRunLengthCodingAct, SIGNAL(triggered()), this, SLOT(bitPlaneRunLengthCoding()));
+
+    logFilterFiveByFiveAct = new QAction(tr("5x5 LOG"), this);
+    connect(logFilterFiveByFiveAct, SIGNAL(triggered()), this, SLOT(logFilterFiveByFive()));
+
+
+    logFilterSevenBySevenAct = new QAction(tr("7x7 LOG"), this);
+    connect(logFilterSevenBySevenAct, SIGNAL(triggered()), this, SLOT(logFilterSevenBySeven()));
 }
 //! [18]
 
@@ -376,6 +383,10 @@ void ImageViewer::createMenus()
     helpMenu->addAction(aboutAct);
     helpMenu->addAction(aboutQtAct);
 
+    logFilterMenu = new QMenu(tr("&Filters"), this);
+    logFilterMenu->addAction(logFilterFiveByFiveAct);
+    logFilterMenu->addAction(logFilterSevenBySevenAct);
+
     colourMenu = new QMenu(tr("&Colour Map"), this);
     colourMenu->addAction(redToggleAct);
     colourMenu->addAction(greenToggleAct);
@@ -383,6 +394,7 @@ void ImageViewer::createMenus()
 
     effectsMenu = new QMenu(tr("&Effects"), this);
     effectsMenu->addMenu(colourMenu);
+    effectsMenu->addMenu(logFilterMenu);
     effectsMenu->addAction(resampleAct);
     effectsMenu->addAction(brightnessContrastAct);
     effectsMenu->addAction(negativeAct);
@@ -971,7 +983,191 @@ void ImageViewer::grayImage(){
      scaleImage(1);
 }
 
+void ImageViewer::logFilterSevenBySeven(){
+    /*
+        -5   -6    -5.5   -5 -5.5   -6    -5
+        -6   -5    -2    0.8   -2   -5    -6
+        -5.5 -2    0.4   0.4  0.4   -2  -5.5
+        -5    0.8  0.4   225  0.4  0.8   -5
+        -5.5 -2    0.4   0.4  0.4  -2   -5.5
+        -6   -5     -2   0.8   -2  -5    -6,
+        -5   -6   -5.5    -5 -5.5  -6    -5
+      */
+    int num_of_cols = tempImage.height();
+    int num_of_rows = tempImage.width();
+    double ro = 0, go = 0, bo = 0;
 
+    float mask7b7[7][7] = {
+        {-5,-6,-5.5,-5,-5.5,-6,-5},
+        {-6,-5,-2,0.8,-2,-5,-6},
+        {-5.5,-2,0.4,0.4,0.4,-2,-5.5},
+        {-5,0.8,0.4,225,0.4,0.8,-5},
+        {-5.5,-2,0.4,0.4,0.4,-2,-5.5},
+        {-6,-5,-2,0.8,-2,-5,-6},
+        {-5,-6,-5.5,-5,-5.5,-6,-5},
+    };
+
+
+    QImage image = tempImage.copy();
+    int planes = tempImage.depth();
+
+    for(int row = 3 ; row < num_of_rows-3 ; ++row){
+        for (int col = 3; col < num_of_cols-3; ++col) {
+            int rst = row - 3;
+            int cst = col - 3;
+            for( int r = rst; r < row + 4; r++){
+                for( int c = cst; c < col + 4; c++){
+                    QRgb clr = tempImage.pixel(r, c);
+                    QColor pixi = QColor(clr);
+                    int x = r - rst;
+                    int y = c - cst;
+                    ro += pixi.red()*mask7b7[x][y]*10;
+                    go += pixi.green()*mask7b7[x][y]*10;
+                    bo += pixi.blue()*mask7b7[x][y]*10;
+                }
+            }
+
+
+
+            QRgb clrLOG;
+            if(planes == 8){
+                int y = (int)(0.299*ro + 0.587*go + 0.114*bo)/10;
+                char x = (char)y;
+                if(x > 256) x = 256;
+                if(x < 0) x = 0;
+                image.setPixel(row, col, x);
+            }else{
+                int a, b, c;
+                a = qCeil(ro);
+                b = qCeil(go);
+                c = qCeil(bo);
+                if(a > 256) a = 256;
+                if(a < 0) a = 0;
+                if(b > 256) b = 256;
+                if(b < 0) b = 0;
+                if(c > 256) c = 256;
+                if(c < 0) c = 0;
+
+                clrLOG = qRgba(a, b, c, 255);
+                 image.setPixel(row, col, clrLOG);
+            }
+
+        }
+    }
+
+     imageLabel->setPixmap(QPixmap::fromImage(image));
+     imageLabel->adjustSize();
+     tempImage = image.copy();
+     scaleImage(1);
+}
+
+void ImageViewer::logFilterFiveByFive(){
+    /*
+             0   0  -1   0   0
+             0  -1  -2  -1   0
+            -1  -2  16  -2  -1
+             0  -1  -2  -1   0
+             0   0  -1   0   0
+      */
+
+    int num_of_cols = tempImage.height();
+    int num_of_rows = tempImage.width();
+    int ro, go, bo;
+    QImage image = tempImage.copy();
+    int planes = tempImage.depth();
+
+    for(int row = 2 ; row < num_of_rows-2 ; ++row){
+        for (int col = 2; col < num_of_cols-2; ++col) {
+            QRgb clr = tempImage.pixel(row,col);
+                QColor pixi = QColor(clr);
+                ro = pixi.red()*16;
+                go = pixi.green()*16;
+                bo = pixi.blue()*16;
+
+            // N4 Clan
+            QRgb cll2 = tempImage.pixel(row-1,col);
+                QColor cll2p = QColor(cll2);
+                ro -= cll2p.red()*2;
+                go -= cll2p.green()*2;
+                bo -= cll2p.blue()*2;
+            QRgb clr2 = tempImage.pixel(row,col-1);
+                QColor clr2p = QColor(clr2);
+                ro -= clr2p.red()*2;
+                go -= clr2p.green()*2;
+                bo -= clr2p.blue()*2;
+            QRgb clu2 = tempImage.pixel(row,col+1);
+                QColor clu2p = QColor(clu2);
+                ro -= clu2p.red()*2;
+                go -= clu2p.green()*2;
+                bo -= clu2p.blue()*2;
+            QRgb cld2 = tempImage.pixel(row+1,col);
+                QColor cld2p = QColor(cld2);
+                ro -= cld2p.red()*2;
+                go -= cld2p.green()*2;
+                bo -= cld2p.blue()*2;
+
+            // -1 clan
+            clr = tempImage.pixel(row-1,col-1);
+                pixi = QColor(clr);
+                ro -= pixi.red();
+                go -= pixi.green();
+                bo -= pixi.blue();
+            clr = tempImage.pixel(row-1,col+1);
+                pixi = QColor(clr);
+                ro -= pixi.red();
+                go -= pixi.green();
+                bo -= pixi.blue();
+            clr = tempImage.pixel(row+1,col+1);
+                pixi = QColor(clr);
+                ro -= pixi.red();
+                go -= pixi.green();
+                bo -= pixi.blue();
+            clr = tempImage.pixel(row+1,col-1);
+                pixi = QColor(clr);
+                ro -= pixi.red();
+                go -= pixi.green();
+                bo -= pixi.blue();
+
+            clr = tempImage.pixel(row,col-2);
+                pixi = QColor(clr);
+                ro -= pixi.red();
+                go -= pixi.green();
+                bo -= pixi.blue();
+            clr = tempImage.pixel(row,col+2);
+                pixi = QColor(clr);
+                ro -= pixi.red();
+                go -= pixi.green();
+                bo -= pixi.blue();
+            clr = tempImage.pixel(row-2,col);
+                pixi = QColor(clr);
+                ro -= pixi.red();
+                go -= pixi.green();
+                bo -= pixi.blue();
+            clr = tempImage.pixel(row+2,col);
+                pixi = QColor(clr);
+                ro -= pixi.red();
+                go -= pixi.green();
+                bo -= pixi.blue();
+
+                QRgb clrLOG;
+            //qDebug() << y;
+            if(planes == 8){
+                int y = (int)(0.299*ro + 0.587*go + 0.114*bo);
+                char x = (char)y;
+                image.setPixel(row, col, x);
+            }else{
+                clrLOG = qRgba(ro, go, bo, 255);
+                 image.setPixel(row, col, clrLOG);
+            }
+
+        }
+    }
+
+     imageLabel->setPixmap(QPixmap::fromImage(image));
+     imageLabel->adjustSize();
+     tempImage = image.copy();
+     scaleImage(1);
+}
 
 void ImageViewer::bitPlaneRunLengthCoding(){
     int num_of_cols = tempImage.height();
@@ -1050,7 +1246,6 @@ void ImageViewer::bitPlaneRunLengthCoding(){
             }
         }
         file.close();
-
 }
 
 

@@ -90,6 +90,8 @@ private slots:
     void normalize(int min, int max);
     void grayImage();
     void bitPlaneRunLengthCoding();
+    void logFilterFiveByFive();
+    void logFilterSevenBySeven();
 
 private:
     void createActions();
@@ -163,12 +165,15 @@ private:
     QAction *normalizationAct;
     QAction *grayImageAct;
     QAction *bitPlaneRunLengthCodingAct;
+    QAction *logFilterFiveByFiveAct;
+    QAction *logFilterSevenBySevenAct;
 
     QMenu *fileMenu;
     QMenu *viewMenu;
     QMenu *helpMenu;
     QMenu *effectsMenu;
     QMenu *colourMenu;
+    QMenu *logFilterMenu;
 };
 //! [0]
 

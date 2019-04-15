@@ -49,14 +49,16 @@
 #include <QFile>
 #include <QTextStream>
 #include <QtMath>
-
+#include <string>
 
 #include "imageviewer.h"
 #include "qcustomplot.h"
 #include "contraststretchingdialog.h"
 //#include "normalizesizingdialog.h"
 #include "resamplingscaledialog.h"
-
+#include "huffman.cpp"
+#include "customdialog.h"
+#include "customfilter.h"
 
 
 
@@ -356,6 +358,13 @@ void ImageViewer::createActions()
 
     logFilterSevenBySevenAct = new QAction(tr("7x7 LOG"), this);
     connect(logFilterSevenBySevenAct, SIGNAL(triggered()), this, SLOT(logFilterSevenBySeven()));
+
+    generateHuffmanCodeAct = new QAction(tr("Huffman"), this);
+    connect(generateHuffmanCodeAct, SIGNAL(triggered()), this, SLOT(generateHuffmanCode()));
+
+    customFilterThreeByThreeAct = new QAction(tr("Custome Filter"), this);
+    customFilterThreeByThreeAct->setShortcut(tr("Ctrl+K"));
+    connect(customFilterThreeByThreeAct, SIGNAL(triggered()), this, SLOT(customFilterThreeByThree()));
 }
 //! [18]
 
@@ -402,6 +411,8 @@ void ImageViewer::createMenus()
     effectsMenu->addAction(normalizationAct);
     effectsMenu->addAction(grayImageAct);
     effectsMenu->addAction(bitPlaneRunLengthCodingAct);
+    effectsMenu->addAction(generateHuffmanCodeAct);
+    effectsMenu->addAction(customFilterThreeByThreeAct);
     effectsMenu->setEnabled(false);
 
 
@@ -551,31 +562,51 @@ void ImageViewer::blueToggle(){
 }
 
 void ImageViewer::imageResample(){
-    //int num_of_cols = tempImage.height();
-    //int num_of_rows = tempImage.width();
+    int num_of_cols = tempImage.height();
+    int num_of_rows = tempImage.width();
     ResamplingScaleDialog *ndlg = new ResamplingScaleDialog();
     ndlg->show();
     //ndlg->setWidth(num_of_rows);
     //ndlg->setHeight(num_of_cols);
 
 
-//    QImage img2((num_of_rows +1)/2 , (num_of_cols + 1)/2, QImage::Format_RGB32);
+    QImage img2((num_of_rows +1)/2 , (num_of_cols + 1)/2, QImage::Format_RGB32);
 
-//    for(int row = 0 ; row < num_of_rows ; row = row + 2){
-//        for (int col = 0; col < num_of_cols; col = col + 2) {
-//            if(row%2 == 0 && col%2 == 0){
-//                QRgb clr = tempImage.pixel(row,col);
-//                QColor pixi = QColor(clr);
-//                clr = qRgba(pixi.red(),pixi.green(),pixi.blue(),pixi.alpha());
-//                img2.setPixel(row/2,col/2,clr);
-//            }
+    for(int row = 0 ; row < num_of_rows ; row = row + 2){
+        for (int col = 0; col < num_of_cols; col = col + 2) {
+            if(row%2 == 0 && col%2 == 0){
+                QRgb clr = tempImage.pixel(row,col);
+                QColor pixi = QColor(clr);
+                clr = qRgba(pixi.red(),pixi.green(),pixi.blue(),pixi.alpha());
+                img2.setPixel(row/2,col/2,clr);
+            }
 
-//        }
-//    }
+        }
+    }
 
-//     imageLabel->setPixmap(QPixmap::fromImage(img2));
-//     imageLabel->adjustSize();
-//     tempImage = img2.copy();
+     imageLabel->setPixmap(QPixmap::fromImage(img2));
+     imageLabel->adjustSize();
+     tempImage = img2.copy();
+
+
+//    string  name = "First Last";            // NOTE: these lines of code (the variables you wish to change)
+//    bool    student  = true;                //  probably exist in your program already and so it is only
+//    int     age      = 20;                  //  the seven lines below needed to "create and display"
+//    int     sportIdx = 1;                   //  your custom dialog.
+
+//    CustomDialog d("Registration", this);                            // We want our custom dialog called "Registration".
+//    d.addLabel    ("Please enter your details below ...");           // The first element is just a text label (non interactive).
+//    d.addLineEdit ("name:  ", &name, "No middle name!");             // Here's a line edit.
+//    d.addCheckBox ("current student", &student, "my tooltip");       // Here's a checkbox with a tooltip (optional last argument).
+//    d.addSpinBox  ("your age: ", 1, 120, &age, 1);                   // Here's a number spin box for age.
+//    d.addComboBox ("sport: ", "tennis|soccer|cricket", &sportIdx);   // And here's a combo box with three options (separated by '|').
+
+//    d.exec();                             // Execution stops here until user closes dialog
+
+//    if(d.wasCancelled())                // If the user hit cancel, your values stay the same
+//      return;                           // and you probably don't need to do anything
+//    cout << "Thanks " << name << endl;   // and here it's up to you to do stuff with your new values
+//    cout << "Age " << age << endl;
 }
 
 void ImageViewer::negative(){
@@ -647,8 +678,8 @@ void ImageViewer::brightnessContrast(){
     layout3->addWidget(contrastWdgt);
 
     mainWdgt->setLayout(layout3);
-
     mainWdgt->show();
+
 
     QObject::connect(pb, SIGNAL(sliderMoved(int)), this, SLOT(brightnessContrastSlot(int)));
     QObject::connect(pb2, SIGNAL(sliderMoved(int)), this, SLOT(contrastSlot(int)));
@@ -776,6 +807,25 @@ void ImageViewer::brightnessContrastSlot(int x){
      imageLabel->adjustSize();
 }
 
+
+void ImageViewer::generateHuffmanCode(){
+    updateHistograms();
+    INode* root = BuildTree(red_histo);
+
+    HuffCodeMap codes;
+    GenerateCodes(root, HuffCode(), codes);
+    delete root;
+
+    for (HuffCodeMap::const_iterator it = codes.begin(); it != codes.end(); ++it)
+    {
+        std::cout << (int)it->first << " ";
+        std::copy(it->second.begin(), it->second.end(),
+                  std::ostream_iterator<bool>(std::cout));
+        std::cout << std::endl;
+    }
+    //return 0;
+
+}
 
 void ImageViewer::updateHistograms(){
     int num_of_cols = tempImage.height();
@@ -995,7 +1045,6 @@ void ImageViewer::logFilterSevenBySeven(){
       */
     int num_of_cols = tempImage.height();
     int num_of_rows = tempImage.width();
-    double ro = 0, go = 0, bo = 0;
 
     float mask7b7[7][7] = {
         {-5,-6,-5.5,-5,-5.5,-6,-5},
@@ -1013,6 +1062,7 @@ void ImageViewer::logFilterSevenBySeven(){
 
     for(int row = 3 ; row < num_of_rows-3 ; ++row){
         for (int col = 3; col < num_of_cols-3; ++col) {
+            double ro = 0, go = 0, bo = 0;
             int rst = row - 3;
             int cst = col - 3;
             for( int r = rst; r < row + 4; r++){
@@ -1021,9 +1071,9 @@ void ImageViewer::logFilterSevenBySeven(){
                     QColor pixi = QColor(clr);
                     int x = r - rst;
                     int y = c - cst;
-                    ro += pixi.red()*mask7b7[x][y]*10;
-                    go += pixi.green()*mask7b7[x][y]*10;
-                    bo += pixi.blue()*mask7b7[x][y]*10;
+                    ro += pixi.red()*mask7b7[x][y];
+                    go += pixi.green()*mask7b7[x][y];
+                    bo += pixi.blue()*mask7b7[x][y];
                 }
             }
 
@@ -1031,7 +1081,7 @@ void ImageViewer::logFilterSevenBySeven(){
 
             QRgb clrLOG;
             if(planes == 8){
-                int y = (int)(0.299*ro + 0.587*go + 0.114*bo)/10;
+                int y = (int)(0.299*ro + 0.587*go + 0.114*bo);
                 char x = (char)y;
                 if(x > 256) x = 256;
                 if(x < 0) x = 0;
@@ -1061,6 +1111,90 @@ void ImageViewer::logFilterSevenBySeven(){
      scaleImage(1);
 }
 
+
+void ImageViewer::cFThreeByThree(int mask[][3]){
+
+
+    for(int c = 0; c < 3 ; c++){
+        for(int r = 0; r < 3; r++){
+            qDebug() << mask[c][r] << " " ;
+        }
+        qDebug() << endl;
+    }
+
+
+
+    int num_of_cols = tempImage.height();
+    int num_of_rows = tempImage.width();
+
+
+    QImage image = tempImage.copy();
+    int planes = tempImage.depth();
+
+    for(int row = 1 ; row < num_of_rows-1 ; ++row){
+        for (int col = 1; col < num_of_cols-1; ++col) {
+             double ro = 0, go = 0, bo = 0;
+            int rst = row - 1;
+            int cst = col - 1;
+            for( int r = rst; r < row + 2; r++){
+                for( int c = cst; c < col + 2; c++){
+                    QRgb clr = tempImage.pixel(r, c);
+                    QColor pixi = QColor(clr);
+                    int x = r - rst;
+                    int y = c - cst;
+                    ro += pixi.red()*mask[y][x];
+                    go += pixi.green()*mask[y][x];
+                    bo += pixi.blue()*mask[y][x];
+                }
+            }
+
+
+
+            QRgb clrLOG;
+            if(planes == 8){
+                int y = (int)(0.299*ro + 0.587*go + 0.114*bo);
+                char x = (char)y;
+                if(x > 256) x = 256;
+                if(x < 0) x = 0;
+                image.setPixel(row, col, x);
+            }else{
+                int a, b, c;
+                a = qCeil(ro);
+                b = qCeil(go);
+                c = qCeil(bo);
+                if(a > 256) a = 256;
+                if(a < 0) a = 0;
+                if(b > 256) b = 256;
+                if(b < 0) b = 0;
+                if(c > 256) c = 256;
+                if(c < 0) c = 0;
+
+                clrLOG = qRgba(a, b, c, 255);
+                 image.setPixel(row, col, clrLOG);
+            }
+
+        }
+    }
+
+     imageLabel->setPixmap(QPixmap::fromImage(image));
+     imageLabel->adjustSize();
+     tempImage = image.copy();
+     scaleImage(1);
+
+}
+
+void ImageViewer::customFilterThreeByThree(){
+    /*
+             x  x   x
+             x  x   x
+             x  x   x
+      */
+    CustomFilter *cd = new CustomFilter(*this, "3x3 Filter", &ImageViewer::cFThreeByThree);
+    cd->exec();
+    delete cd;
+}
+
+
 void ImageViewer::logFilterFiveByFive(){
     /*
              0   0  -1   0   0
@@ -1072,14 +1206,18 @@ void ImageViewer::logFilterFiveByFive(){
 
     int num_of_cols = tempImage.height();
     int num_of_rows = tempImage.width();
-    int ro, go, bo;
+
     QImage image = tempImage.copy();
     int planes = tempImage.depth();
 
     for(int row = 2 ; row < num_of_rows-2 ; ++row){
         for (int col = 2; col < num_of_cols-2; ++col) {
+            int ro, go, bo;
             QRgb clr = tempImage.pixel(row,col);
                 QColor pixi = QColor(clr);
+//                ro += 256;
+//                go += 256;
+//                bo += 256;
                 ro = pixi.red()*16;
                 go = pixi.green()*16;
                 bo = pixi.blue()*16;
@@ -1150,7 +1288,11 @@ void ImageViewer::logFilterFiveByFive(){
                 bo -= pixi.blue();
 
                 QRgb clrLOG;
-            //qDebug() << y;
+
+//                ro -= 256;
+//                go -= 256;
+//                bo -= 256;
+
             if(planes == 8){
                 int y = (int)(0.299*ro + 0.587*go + 0.114*bo);
                 char x = (char)y;

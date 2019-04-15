@@ -1,3 +1,10 @@
+#include "customdialogh.h"
+
+customdialogh::customdialogh()
+{
+
+}
+
 #include "customdialog.h"
 
 //############################################################
@@ -590,7 +597,7 @@ int CustomDialog::addTextEdit(string *text, bool richText, bool readOnly,
     e.textEdit->setToolTip(tooltip);
   e.textEdit->setReadOnly(readOnly);
   e.textEdit->setMinimumHeight(minHeight);
-//  e.textEdit->width(widthi);
+
   e.layout->addWidget(e.textEdit);
   layoutNextElement->addLayout(e.layout);
   return elements.size();
@@ -1219,3 +1226,5 @@ string InputBoxString(QWidget *parent, string title, string label, string defaul
 
 
 //############################################################
+
+

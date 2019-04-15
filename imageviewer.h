@@ -92,6 +92,8 @@ private slots:
     void bitPlaneRunLengthCoding();
     void logFilterFiveByFive();
     void logFilterSevenBySeven();
+    void customFilterThreeByThree();
+    void generateHuffmanCode();
 
 private:
     void createActions();
@@ -105,6 +107,9 @@ private:
     void contrastLookupUpdate(int x);
     void brightnessLookupUpdate(int x);
     void updateHistograms();
+    void cFThreeByThree(int mask[3][3]);
+
+
 
 
     QLabel *imageLabel;
@@ -167,6 +172,8 @@ private:
     QAction *bitPlaneRunLengthCodingAct;
     QAction *logFilterFiveByFiveAct;
     QAction *logFilterSevenBySevenAct;
+    QAction *generateHuffmanCodeAct;
+    QAction *customFilterThreeByThreeAct;
 
     QMenu *fileMenu;
     QMenu *viewMenu;

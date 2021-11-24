@@ -2,7 +2,7 @@
 #define CUSTOMFILTER_H
 
 #include <QDialog>
-#include <imageviewer.h>
+#include "imageviewer.h"
 
 namespace Ui {
 class CustomFilter;
